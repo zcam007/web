@@ -1,0 +1,143 @@
+{
+  "hero": {
+    "title": "Chandu & Mounika",
+    "subtitle": "Are tying the knot",
+    "date": "2025-11-26T09:15:00Z",
+    "ctaText": "RSVP Now",
+    "ctaHref": "#rsvp",
+    "images": [
+      "/uploads/1759450468265-ozm6dk00zij.png",
+      "/uploads/1759452449044-1frulrzkmt1.png"
+    ]
+  },
+  "sections": [
+    {
+      "type": "invitation-hero",
+      "hashtag": "#MoCHA",
+      "brideName": "Mounika",
+      "groomName": "Chandu",
+      "brideImage": "/uploads/1759441393254-pchkaq1jw78.jpeg",
+      "groomImage": "/uploads/1759441338556-ha68jmsrn09.png",
+      "message": "From coffee dates to wedding plates ☕🍽️ We're turning 'just us' into soulmates! 💑",
+      "date": "26th November 2025"
+    },
+    {
+      "type": "couple",
+      "heading": "Let's Celebrate Togetherness",
+      "bride": {
+        "name": "Chandu",
+        "bio": "From coffee dates to wedding plates ☕🍽️"
+      },
+      "groom": {
+        "name": "Mounika",
+        "bio": "We're turning 'just us' into soulmates! 💑"
+      },
+      "image": "/uploads/1759442950683-46ihlk3ukes.jpeg",
+      "visible": false
+    },
+    {
+      "type": "events",
+      "heading": "Events",
+      "items": [
+        {
+          "name": "Prathanam",
+          "time": "Monday, 24th Nov • 10:00 AM",
+          "place": "SRINIDHI Joy 'n' Joy Clubs & Resorts",
+          "description": "The sacred journey begins with traditional rituals and blessings from the elders.",
+          "image": "/uploads/1759450468265-ozm6dk00zij.png"
+        },
+        {
+          "name": "Sangeeth",
+          "time": "Monday, 24th Nov • 6:00 PM",
+          "place": "SRINIDHI Joy 'n' Joy Clubs & Resorts",
+          "description": "An evening filled with music, dance, and celebration as families come together.",
+          "image": "/uploads/1759452449044-1frulrzkmt1.png"
+        },
+        {
+          "name": "Haldi",
+          "time": "Tuesday, 25th Nov • 10:00 AM",
+          "place": "SRINIDHI Joy 'n' Joy Clubs & Resorts",
+          "description": "A vibrant ceremony with turmeric paste, bringing glow and good fortune.",
+          "image": "/uploads/1759442950683-46ihlk3ukes.jpeg"
+        },
+        {
+          "name": "Mehandi",
+          "time": "Tuesday, 25th Nov • 6:00 PM",
+          "place": "SRINIDHI Joy 'n' Joy Clubs & Resorts",
+          "description": "Intricate henna designs adorning hands, celebrating love and tradition.",
+          "image": "/uploads/1759450468265-ozm6dk00zij.png"
+        },
+        {
+          "name": "Wedding Ceremony",
+          "time": "Wednesday, 26th Nov • 9:15 AM",
+          "place": "SRINIDHI Joy 'n' Joy Clubs & Resorts, Ghatkesar",
+          "description": "The sacred wedding ceremony where Chandu & Mounika take their eternal vows. Muhurtham at 9:15 AM sharp.",
+          "image": "/uploads/1759452449044-1frulrzkmt1.png"
+        },
+        {
+          "name": "Reception",
+          "time": "Sunday, 30th Nov • 6:00 PM",
+          "place": "DAMA CONVENTIONS, Visakhapatnam",
+          "description": "Join us for a blissful evening of celebration, dinner, and festivities at Gajuwaka, Visakhapatnam.",
+          "image": "/uploads/1759442950683-46ihlk3ukes.jpeg"
+        }
+      ]
+    },
+    {
+      "type": "story",
+      "heading": "Our Story",
+      "items": [
+        {
+          "year": "2018",
+          "title": "We Met",
+          "desc": "A serendipitous coffee shop chat that changed everything."
+        },
+        {
+          "year": "2021",
+          "title": "We Said Yes",
+          "desc": "Under a sky full of lanterns and promises."
+        },
+        {
+          "year": "2025",
+          "title": "Forever Begins",
+          "desc": "Chandu & Mounika, a tale so true, with love, laughter, and haldi hues. 🌼"
+        }
+      ],
+      "visible": false
+    },
+    {
+      "type": "gallery",
+      "heading": "Gallery",
+      "images": [
+        "/uploads/1759516578859-q80bwm9x24f.jpg",
+        "/uploads/1759516596232-12125wpty9ao.jpeg"
+      ]
+    },
+    {
+      "type": "invitation",
+      "hashtag": "#MoCHA",
+      "heading": "Inviting You With Love",
+      "message": "From coffee dates to wedding plates ☕🍽️\nWe're turning 'just us' into soulmates! 💑\nChandu & Mounika, a tale so true,\nWith love, laughter, and haldi hues. 🌼",
+      "dates": "Please join us from Nov 24th - 26th to celebrate our wedding in Hyderabad",
+      "ctaText": "I'll be there",
+      "ctaHref": "#rsvp",
+      "note": "Have questions? WhatsApp: +91 96187 00123",
+      "image": "/uploads/1759450468265-ozm6dk00zij.png",
+      "visible": false
+    },
+    {
+      "type": "rsvp",
+      "heading": "RSVP",
+      "note": "We can't wait to celebrate with you.",
+      "visible": false
+    },
+    {
+      "type": "map",
+      "heading": "Venue",
+      "embed": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3806.1234567890!2d78.6789012!3d17.4567890!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTfCsDI3JzI0LjQiTiA3OMKwNDAnNDQuMCJF!5e0!3m2!1sen!2sin!4v1234567890"
+    }
+  ],
+  "footer": {
+    "text": "Inviting You With Love - #MoCHA | Chandu & Mounika • 26th November 2025"
+  }
+}

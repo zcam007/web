@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fffaf7;
+  --fg: #2b2521;
+  --primary: #c79a6d;
+  --accent: #9c6a43;
+}
+
+html, body {
+  background: linear-gradient(135deg, #fffaf7 0%, #fff5ee 50%, #ffe4e1 100%);
+  background-attachment: fixed;
+  color: var(--fg);
+  font-family: theme('fontFamily.body');
+  min-height: 100vh;
+}
+
+.container { @apply max-w-6xl mx-auto px-4; }
+
+.section-title { 
+  @apply text-3xl md:text-4xl font-semibold tracking-tight mb-4 font-display;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtext { @apply text-lg opacity-80; }
+
+.btn { 
+  @apply inline-block px-5 py-3 rounded-full border border-black/10 shadow-sm transition-all duration-300; 
+}
+
+.btn-primary { 
+  @apply bg-[var(--primary)] text-white hover:opacity-90 hover:shadow-lg hover:-translate-y-0.5;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.card { 
+  @apply rounded-2xl shadow-sm bg-white/80 backdrop-blur-sm p-6 transition-all duration-300 hover:shadow-md border border-white/50; 
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom focus styles for better accessibility */
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Decorative floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  background-size: 1000px 100%;
+  animation: shimmer 3s infinite;
+}
