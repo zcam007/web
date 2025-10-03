@@ -3,12 +3,14 @@ services:
   app:
     image: node:20
     working_dir: /app
-    command: sh -lc "npm ci && npm run build && npm run start"
+    command: sh -lc "rm -rf .next && npm ci && npm run build && npm run start"
     environment:
       NODE_ENV: production
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-strong}
     volumes:
       - ./:/app
+      - /app/node_modules
+      - /app/.next
     ports:
       - "3000:3000"
 
