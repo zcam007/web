@@ -3,7 +3,7 @@ services:
   app:
     image: node:20
     working_dir: /app
-    command: sh -lc "npm ci && npm run build && npm run start -H 0.0.0.0"
+    command: sh -lc "npm ci && npm run build && npm run start"
     environment:
       NODE_ENV: production
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-strong}
