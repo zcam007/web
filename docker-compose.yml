@@ -6,7 +6,7 @@ services:
     command: sh -lc "npm ci && npm run build && npm run start -H 0.0.0.0"
     environment:
       NODE_ENV: production
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-strong}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:chandu}
     volumes:
       - ./:/app
     expose:
