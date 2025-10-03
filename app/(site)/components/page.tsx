@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import ImageUploader from './components/ImageUploader';
+import ImageUploader from '../components/ImageUploader';
 
 /**
  * Mock data for existing images.
@@ -51,3 +51,4 @@ export default function AdminPage() {
     </main>
   );
 }
+
