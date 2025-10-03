@@ -4,9 +4,12 @@ import Countdown from '../components/Countdown';
 import { FadeIn, StaggerContainer, StaggerItem, TapScale } from '../components/AnimationWrappers';
 
 export default function Hero({ data }: { data: any }) {
-  const images: string[] = data.images ?? [];
+  // Use provided images or fall back to empty array
+  const images: string[] = data.images && data.images.length > 0 ? data.images : [];
   const [idx, setIdx] = useState(0);
+  
   useEffect(() => {
+    if (images.length === 0) return;
     const t = setInterval(() => setIdx(i => (i+1) % images.length), 4000);
     return () => clearInterval(t);
   }, [images.length]);
