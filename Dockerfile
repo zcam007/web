@@ -24,13 +24,23 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+
+# Ensure native deps for sharp are available at runtime
+RUN apk add --no-cache libc6-compat
 
 # Copy the optimized, standalone output from the builder stage
 # This includes only what's necessary to run the app in production
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/data ./data
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+# Create writable directories for uploads/config and drop privileges
+RUN mkdir -p /app/public/uploads /app/data \
+	&& chown -R node:node /app
+
+USER node
 
 # The command to start the app
 # This runs the optimized Next.js server
