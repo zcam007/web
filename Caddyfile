@@ -1,19 +1,17 @@
 {
-	# Enable auto-HTTPS via Let's Encrypt
-	# Replace example.com with your domain
-	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# For local development, you can remove this block
+	# Or replace with your production email
+	email your-email@example.com
 }
 
-# Replace example.com with your domain
-example.com {
-	# Serve static files from the /public directory
-	file_server
+# Replace with your domain for production, or use localhost for local dev
+localhost {
+	# Serve uploaded files directly from the /public/uploads directory
+	handle_path /uploads/* {
+		root * /public
+		file_server
+	}
 
 	# Proxy all other requests to the Next.js app
-	# Forward the Authorization header for admin API calls
-	reverse_proxy app:3000 {
-		header_up Host {host}
-		header_up X-Forwarded-For {remote_ip}
-		header_up Authorization {header.Authorization}
-	}
+	reverse_proxy app:3000
 }
