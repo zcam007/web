@@ -70,18 +70,27 @@ export default function ImageUploader({ onUploadComplete, onClose }: ImageUpload
     setIsUploading(true);
     setError(null);
 
-    // This is a mock upload process.
-    // In a real app, you would use fetch() to send the file to an API route
-    // (e.g., '/api/upload') and handle storage (e.g., Vercel Blob, S3, Cloudinary).
-    console.log('Uploading file:', file.name);
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
+    const formData = new FormData();
+    formData.append('file', file);
 
-    // On successful upload, you'd get a URL back from your API.
-    const mockUrl = `https://cdn.example.com/${file.name}`;
-    console.log('Mock upload successful:', mockUrl);
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-    setIsUploading(false);
-    onUploadComplete(mockUrl);
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const { url } = await response.json();
+      onUploadComplete(url);
+    } catch (err) {
+      setError('Upload failed. Please try again.');
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
