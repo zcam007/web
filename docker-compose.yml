@@ -11,27 +11,10 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-strong}
       # Explicitly set the port for the Next.js server
       PORT: 3000
+    # Run the container with the node user (UID 1000) to match Dockerfile
+    user: "1000"
     ports:
       - "3000:3000"
     volumes:
       - ./data:/app/data
       - ./public:/app/public
-
-  caddy:
-    image: caddy:2
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      ACME_AGREE: "true"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - app
-
-volumes:
-  caddy_data:
-  caddy_config:

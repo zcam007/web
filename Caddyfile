@@ -1,15 +1,19 @@
 {
-  email you@example.com
+	# Enable auto-HTTPS via Let's Encrypt
+	# Replace example.com with your domain
+	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 }
 
-:80 {
-  redir https://{host}{uri}
-}
+# Replace example.com with your domain
+example.com {
+	# Serve static files from the /public directory
+	file_server
 
-:443 {
-  tls you@example.com
-  encode gzip zstd
-  handle_path / {
-    reverse_proxy app:3000
-  }
+	# Proxy all other requests to the Next.js app
+	# Forward the Authorization header for admin API calls
+	reverse_proxy app:3000 {
+		header_up Host {host}
+		header_up X-Forwarded-For {remote_ip}
+		header_up Authorization {header.Authorization}
+	}
 }
