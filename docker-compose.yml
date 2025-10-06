@@ -1,6 +1,7 @@
 version: "3.9"
 services:
   app:
+    # This tells Docker Compose to build the image from the Dockerfile
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,23 +9,12 @@ services:
     environment:
       NODE_ENV: production
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-strong}
+      # Explicitly set the port for the Next.js server
       PORT: 3000
+    # Run the container with the node user (UID 1000) to match Dockerfile
     user: "1000"
+    ports:
+      - "3000:3000"
     volumes:
       - ./data:/app/data
       - ./public:/app/public
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./public:/public # Caddy needs access to the public directory
-      - caddy_data:/data
-      - caddy_config:/config
-
-volumes:
-  caddy_data:
-  caddy_config:
