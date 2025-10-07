@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url });
   } catch (e) {
     console.error('Upload error:', e);
-    return new NextResponse('error', { status: 500 });
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    return new NextResponse(errorMessage, { status: 500 });
   }
 }
