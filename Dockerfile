@@ -17,6 +17,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Run the Next.js build command
 RUN npm run build
+RUN mv public .next/standalone/
 
 # Stage 3: Production image
 # This stage creates the final, lean image
@@ -31,7 +32,6 @@ RUN apk add --no-cache libc6-compat
 
 # Copy the optimized, standalone output from the builder stage
 # This includes only what's necessary to run the app in production
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/data ./data
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
