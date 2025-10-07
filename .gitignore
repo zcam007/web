@@ -37,3 +37,6 @@ out/
 *.zip
 *.rar
 *.7z
+
+public/uploads
+public
