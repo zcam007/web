@@ -36,6 +36,9 @@ COPY --from=builder /app/data ./data
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+# Symlink the public directory to the standalone folder
+RUN ln -s /app/public /app/.next/standalone/public
+
 # Create writable directories for uploads/config and drop privileges
 RUN mkdir -p /app/public/uploads /app/data \
 	&& chown -R node:node /app
