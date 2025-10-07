@@ -17,7 +17,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Run the Next.js build command
 RUN npm run build
-RUN mv public .next/standalone/
+RUN cp -r public/* .next/standalone/public/
 
 # Stage 3: Production image
 # This stage creates the final, lean image
