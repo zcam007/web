@@ -42,6 +42,35 @@ html, body {
   @apply rounded-2xl shadow-sm bg-white/80 backdrop-blur-sm p-6 transition-all duration-300 hover:shadow-md border border-white/50; 
 }
 
+.glass-panel {
+  @apply relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 backdrop-blur-2xl shadow-xl;
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.25));
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass-panel::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.4), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Smooth scrolling for anchor links */
 html {
   scroll-behavior: smooth;

@@ -2,7 +2,7 @@ import './globals.css';
 import type { ReactNode } from 'react';
 
 export const metadata = {
-  title: 'Our Wedding',
+  title: '#Mocha - Wedding ',
   description: 'A modern, elegant wedding website',
 };
 

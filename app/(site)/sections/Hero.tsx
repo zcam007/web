@@ -1,26 +1,53 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Countdown from '../components/Countdown';
-import { FadeIn, StaggerContainer, StaggerItem, TapScale } from '../components/AnimationWrappers';
+import { StaggerContainer, StaggerItem, TapScale } from '../components/AnimationWrappers';
+
+type HeroImageInput = string | { url?: string; focusX?: number; focusY?: number };
+type HeroImage = { url: string; focusX: number; focusY: number };
+
+function clamp01(value: number | undefined, fallback = 50) {
+  if (typeof value !== 'number' || Number.isNaN(value)) return fallback;
+  return Math.min(100, Math.max(0, value));
+}
+
+function normalizeImages(list: HeroImageInput[] | undefined): HeroImage[] {
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((item) => {
+      if (typeof item === 'string') {
+        return { url: item, focusX: 50, focusY: 50 };
+      }
+      const url = item?.url ?? '';
+      if (!url) return null;
+      return {
+        url,
+        focusX: clamp01(item?.focusX),
+        focusY: clamp01(item?.focusY)
+      };
+    })
+    .filter((item): item is HeroImage => item !== null);
+}
 
 export default function Hero({ data }: { data: any }) {
-  // Use provided images or fall back to empty array
-  const images: string[] = data.images && data.images.length > 0 ? data.images : [];
+  const images = normalizeImages(data.images);
   const [idx, setIdx] = useState(0);
-  
+
   useEffect(() => {
     if (images.length === 0) return;
-    const t = setInterval(() => setIdx(i => (i+1) % images.length), 4000);
+    const t = setInterval(() => setIdx((i) => (i + 1) % images.length), 4000);
     return () => clearInterval(t);
   }, [images.length]);
+
   return (
     <section className="relative h-[70vh] md:h-[80vh] flex items-center justify-center overflow-hidden">
-      {images.map((src, i) => (
+      {images.map((img, i) => (
         <img
-          key={src}
-          src={src}
+          key={img.url}
+          src={img.url}
           alt="hero"
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i===idx?'opacity-100':'opacity-0'}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === idx ? 'opacity-100' : 'opacity-0'}`}
+          style={{ objectPosition: `${img.focusX}% ${img.focusY}%` }}
         />
       ))}
       <div className="absolute inset-0 bg-black/40" />

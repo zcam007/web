@@ -6,12 +6,41 @@
     "ctaText": "RSVP Now",
     "ctaHref": "#rsvp",
     "images": [
-      "/uploads/1759450468265-ozm6dk00zij.png",
-      "/uploads/1759452449044-1frulrzkmt1.png",
-      "/uploads/1759441393254-pchkaq1jw78.jpeg",
-      "/uploads/1759442950683-46ihlk3ukes.jpeg",
-      "/uploads/1759516578859-q80bwm9x24f.jpg",
-      "/uploads/1759516596232-12125wpty9ao.jpeg"
+      {
+        "url": "/uploads/1759450468265-ozm6dk00zij.png",
+        "focusX": 50,
+        "focusY": 25
+      },
+      {
+        "url": "/uploads/1759452449044-1frulrzkmt1.png",
+        "focusX": 49,
+        "focusY": 39
+      },
+      {
+        "url": "/uploads/1759441393254-pchkaq1jw78.jpeg",
+        "focusX": 50,
+        "focusY": 32
+      },
+      {
+        "url": "/uploads/1759442950683-46ihlk3ukes.jpeg",
+        "focusX": 50,
+        "focusY": 50
+      },
+      {
+        "url": "/uploads/1759516578859-q80bwm9x24f.jpg",
+        "focusX": 72,
+        "focusY": 50
+      },
+      {
+        "url": "/uploads/1759516596232-12125wpty9ao.jpeg",
+        "focusX": 50,
+        "focusY": 37
+      },
+      {
+        "url": "/api/immich/assets/2499b1fd-9d0d-4b1c-a99b-d0f4c000be3e/thumbnail?size=preview",
+        "focusX": 50,
+        "focusY": 50
+      }
     ]
   },
   "sections": [
@@ -114,8 +143,19 @@
       "heading": "Gallery",
       "images": [
         "/uploads/1759516578859-q80bwm9x24f.jpg",
-        "/uploads/1759516596232-12125wpty9ao.jpeg"
-      ]
+        "/uploads/1759516596232-12125wpty9ao.jpeg",
+        "/uploads/1759452449044-1frulrzkmt1.png",
+        "/uploads/1759442950683-46ihlk3ukes.jpeg"
+      ],
+      "mode": "hybrid",
+      "immich": {
+        "albums": [
+          "1580aaf8-5497-4175-ae7d-d6700fc69ed0",
+          "5ca3331a-0bb3-45d0-af6a-4604b70e865c"
+        ],
+        "limit": 60,
+        "randomize": true
+      }
     },
     {
       "type": "invitation",
