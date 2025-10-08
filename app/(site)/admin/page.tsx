@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useImageLibrary } from '../lib/image-library';
 
 function SortableItem({ id, children }: any) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -104,7 +105,7 @@ export default function Admin() {
         </div>
         <div className="mt-3">
           <label className="block text-sm">Hero Images</label>
-          <ImageList list={cfg.hero.images} onChange={(list:any)=>setCfg({...cfg, hero: {...cfg.hero, images: list}})} />
+          <ImagePickerList list={cfg.hero.images} onChange={(list:any)=>setCfg({...cfg, hero: {...cfg.hero, images: list}})} />
         </div>
       </div>
 
@@ -169,7 +170,7 @@ function SectionEditor({ section, onChange }: any) {
         </div>
         <div className="mt-3">
           <label className="block text-sm">Couple Image</label>
-          <ImageOne value={section.image} onChange={(v:string)=>onChange({...section, image: v})} />
+          <ImagePicker value={section.image} onChange={(v:string)=>onChange({...section, image: v})} />
         </div>
       </div>
     );
@@ -199,7 +200,7 @@ function SectionEditor({ section, onChange }: any) {
       <div>
         <div className="text-lg font-semibold">Gallery</div>
         <input className="border rounded p-2 w-full mt-2" value={section.heading} onChange={e=>onChange({...section, heading: e.target.value})} />
-        <ImageList list={section.images||[]} onChange={(list:any)=>onChange({...section, images: list})} />
+        <ImagePickerList list={section.images||[]} onChange={(list:any)=>onChange({...section, images: list})} />
       </div>
     );
   }
@@ -236,7 +237,7 @@ function SectionEditor({ section, onChange }: any) {
         <input className="border rounded p-2 w-full mt-2" placeholder="Note (e.g., contact info)" value={section.note||''} onChange={e=>onChange({...section, note: e.target.value})} />
         <div className="mt-3">
           <label className="block text-sm">Background Image</label>
-          <ImageOne value={section.image} onChange={(v:string)=>onChange({...section, image: v})} />
+          <ImagePicker value={section.image} onChange={(v:string)=>onChange({...section, image: v})} />
         </div>
       </div>
     );
@@ -252,11 +253,11 @@ function SectionEditor({ section, onChange }: any) {
         </div>
         <div className="mt-3">
           <label className="block text-sm">Bride Image (Circular)</label>
-          <ImageOne value={section.brideImage} onChange={(v:string)=>onChange({...section, brideImage: v})} />
+          <ImagePicker value={section.brideImage} onChange={(v:string)=>onChange({...section, brideImage: v})} />
         </div>
         <div className="mt-3">
           <label className="block text-sm">Groom Image (Circular)</label>
-          <ImageOne value={section.groomImage} onChange={(v:string)=>onChange({...section, groomImage: v})} />
+          <ImagePicker value={section.groomImage} onChange={(v:string)=>onChange({...section, groomImage: v})} />
         </div>
         <textarea className="border rounded p-2 w-full mt-3" rows={2} placeholder="Message (optional)" value={section.message||''} onChange={e=>onChange({...section, message: e.target.value})} />
         <input className="border rounded p-2 w-full mt-2" placeholder="Date (e.g., 26th November 2025)" value={section.date||''} onChange={e=>onChange({...section, date: e.target.value})} />
@@ -303,14 +304,6 @@ function EventRepeater({ items, onChange }: any) {
     const c=[...list]; c[i] = {...c[i], [key]: val}; onChange(c); 
   }
   
-  async function uploadImage(i:number, file: File) {
-    const fd = new FormData(); 
-    fd.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
-    const j = await res.json();
-    upd(i, 'image', j.url);
-  }
-  
   return (
     <div className="space-y-4 mt-3">
       {(list||[]).map((it:any, i:number)=> (
@@ -349,20 +342,7 @@ function EventRepeater({ items, onChange }: any) {
             />
             <div>
               <label className="block text-sm mb-1">Event Image</label>
-              <div className="flex items-center gap-3">
-                {it.image && <img src={it.image} alt="" className="w-24 h-24 object-cover rounded-lg border" />}
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={e=>{const f=e.target.files?.[0]; if(f) uploadImage(i, f);}} 
-                />
-              </div>
-              <input 
-                className="border rounded p-2 w-full mt-2" 
-                placeholder="Or paste image URL" 
-                value={it.image||''} 
-                onChange={e=>upd(i, 'image', e.target.value)} 
-              />
+              <ImagePicker value={it.image} onChange={(v:string)=>upd(i, 'image', v)} />
             </div>
           </div>
         </div>
@@ -372,32 +352,42 @@ function EventRepeater({ items, onChange }: any) {
   );
 }
 
-function ImageOne({ value, onChange }: any) {
-  async function upload(file: File) {
-    const fd = new FormData(); fd.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
-    const j = await res.json();
-    onChange(j.url);
-  }
+function ImagePicker({ value, onChange }: { value: string, onChange: (url: string) => void }) {
+  const [showLibrary, setShowLibrary] = useState(false);
+
   return (
-    <div className="flex items-center gap-3">
-      {value && <img src={value} alt="" className="w-24 h-24 object-cover rounded-lg border" />}
-      <input type="file" accept="image/*" onChange={e=>{const f=e.target.files?.[0]; if(f) upload(f);}} />
-      <input className="border rounded p-2 flex-1" value={value||''} onChange={e=>onChange(e.target.value)} />
+    <div>
+      <div className="flex items-center gap-3">
+        {value && <img src={value} alt="" className="w-24 h-24 object-cover rounded-lg border" />}
+        <button className="btn" onClick={() => setShowLibrary(true)}>Choose Image</button>
+      </div>
+      {showLibrary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg w-3/4 h-3/4 overflow-y-auto">
+            <ImageLibrary onSelect={(url) => {
+              onChange(url);
+              setShowLibrary(false);
+            }} />
+            <button className="btn mt-4" onClick={() => setShowLibrary(false)}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function ImageList({ list, onChange }: any) {
-  async function upload(file: File) {
-    const fd = new FormData(); fd.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
-    const j = await res.json();
-    onChange([...(list||[]), j.url]);
+function ImagePickerList({ list, onChange }: { list: string[], onChange: (urls: string[]) => void }) {
+  const [showLibrary, setShowLibrary] = useState(false);
+
+  function onSelect(url: string) {
+    onChange([...(list||[]), url]);
+    setShowLibrary(false);
   }
+
   function rm(i:number) {
     const copy = [...(list||[])]; copy.splice(i,1); onChange(copy);
   }
+
   return (
     <div>
       <div className="flex flex-wrap gap-3 mt-2">
@@ -408,7 +398,80 @@ function ImageList({ list, onChange }: any) {
           </div>
         ))}
       </div>
-      <input type="file" accept="image/*" className="mt-2" onChange={e=>{const f=e.target.files?.[0]; if(f) upload(f);}} />
+      <button className="btn mt-2" onClick={() => setShowLibrary(true)}>Add Image</button>
+      {showLibrary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg w-3/4 h-3/4 overflow-y-auto">
+            <ImageLibrary onSelect={onSelect} />
+            <button className="btn mt-4" onClick={() => setShowLibrary(false)}>Close</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ImageLibrary({ onSelect }: { onSelect: (url: string) => void }) {
+  const { images, setImages, addImage } = useImageLibrary();
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    async function fetchImages() {
+      const res = await fetch('/api/images');
+      const data = await res.json();
+      setImages(data.urls);
+    }
+    fetchImages();
+  }, [setImages]);
+
+  async function handleUpload(file: File) {
+    setUploading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/upload', true);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        setProgress(percentComplete);
+      }
+    };
+
+    xhr.onload = () => {
+      setUploading(false);
+      if (xhr.status === 200) {
+        const res = JSON.parse(xhr.responseText);
+        addImage(res.url);
+      } else {
+        alert('Upload failed');
+      }
+    };
+
+    xhr.send(fd);
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-4">Image Library</h2>
+      <div className="grid grid-cols-4 gap-4">
+        {images.map((url) => (
+          <div key={url} className="relative cursor-pointer" onClick={() => onSelect(url)}>
+            <img src={url} alt="" className="w-full h-32 object-cover rounded-lg" />
+          </div>
+        ))}
+      </div>
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold mb-2">Upload New Image</h3>
+        <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
+        {uploading && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
