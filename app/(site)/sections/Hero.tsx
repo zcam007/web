@@ -25,10 +25,10 @@ export default function Hero({ data }: { data: any }) {
       ))}
       <div className="absolute inset-0 bg-black/40" />
       {/* Decorative elements */}
-      <div className="absolute top-10 left-10 text-6xl animate-bounce opacity-60">💐</div>
+      {/* <div className="absolute top-10 left-10 text-6xl animate-bounce opacity-60">💐</div>
       <div className="absolute top-20 right-16 text-5xl animate-pulse opacity-50">💕</div>
       <div className="absolute bottom-20 left-20 text-4xl animate-bounce opacity-40" style={{animationDelay: '0.5s'}}>🎀</div>
-      <div className="absolute bottom-32 right-12 text-5xl animate-pulse opacity-50" style={{animationDelay: '1s'}}>✨</div>
+      <div className="absolute bottom-32 right-12 text-5xl animate-pulse opacity-50" style={{animationDelay: '1s'}}>✨</div> */}
       <StaggerContainer className="relative z-10 text-center text-white">
         <StaggerItem>
           <h1 className="text-5xl md:text-7xl font-display drop-shadow">{data.title}</h1>
