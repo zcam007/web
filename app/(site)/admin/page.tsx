@@ -453,13 +453,26 @@ function ImageLibrary({ onSelect }: { onSelect: (url: string) => void }) {
     xhr.send(fd);
   }
 
+  async function handleDelete(url: string) {
+    if (confirm('Are you sure you want to delete this image?')) {
+      const filename = url.split('/').pop();
+      const res = await fetch(`/api/images/${filename}`, { method: 'DELETE' });
+      if (res.ok) {
+        setImages(images.filter(i => i !== url));
+      } else {
+        alert('Delete failed');
+      }
+    }
+  }
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Image Library</h2>
       <div className="grid grid-cols-4 gap-4">
         {images.map((url) => (
-          <div key={url} className="relative cursor-pointer" onClick={() => onSelect(url)}>
-            <img src={url} alt="" className="w-full h-32 object-cover rounded-lg" />
+          <div key={url} className="relative">
+            <img src={url} alt="" className="w-full h-32 object-cover rounded-lg cursor-pointer" onClick={() => onSelect(url)} />
+            <button className="btn absolute top-1 right-1 text-xs" onClick={() => handleDelete(url)}>✕</button>
           </div>
         ))}
       </div>
