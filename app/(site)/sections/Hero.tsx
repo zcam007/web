@@ -116,9 +116,19 @@ export default function Hero({ data }: { data: any }) {
           src={img.url}
           alt="hero"
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === idx ? 'opacity-100' : 'opacity-0'}`}
-          style={{ objectPosition: `${img.focusX}% ${img.focusY}%` }}
+          style={{ 
+            objectPosition: `${img.focusX}% ${img.focusY}%`,
+          }}
         />
       ))}
+      {/* Mobile overlay - center faces */}
+      <style jsx>{`
+        @media (max-width: 640px) {
+          section img {
+            object-position: center ${currentImage.focusY}% !important;
+          }
+        }
+      `}</style>
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50" />
       <StaggerContainer className="relative z-10 text-center text-white px-4 sm:px-8 md:px-10 py-6 sm:py-8 w-[calc(100%-2rem)] max-w-full sm:max-w-2xl md:max-w-3xl mx-auto rounded-2xl sm:rounded-3xl bg-black/25" style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
         <StaggerItem>

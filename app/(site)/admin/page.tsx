@@ -41,6 +41,7 @@ type GallerySection = {
     albums: string[];
     limit: number;
     randomize: boolean;
+    hiddenAssets: string[];
   };
 };
 
@@ -103,6 +104,7 @@ function normalizeConfig(config: any) {
             albums,
             limit: typeof immich.limit === 'number' ? immich.limit : 60,
             randomize: immich.randomize !== false,
+            hiddenAssets: Array.isArray(immich.hiddenAssets) ? immich.hiddenAssets : [],
           },
         };
       }
@@ -714,6 +716,129 @@ function ImagePickerList({ list, onChange }: { list: string[], onChange: (urls: 
   );
 }
 
+function ImmichPhotoManager({ albums, hiddenAssets, onHiddenAssetsChange }: { 
+  albums: string[]; 
+  hiddenAssets: string[];
+  onHiddenAssetsChange: (hidden: string[]) => void;
+}) {
+  const [assets, setAssets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!albums.length || !expanded) return;
+    
+    setLoading(true);
+    Promise.all(
+      albums.map(async (albumId) => {
+        try {
+          const res = await fetch(`/api/immich/albums/${albumId}/assets?take=100`);
+          const data = await res.json();
+          return (data.assets || []).map((asset: any) => ({ ...asset, albumId }));
+        } catch {
+          return [];
+        }
+      })
+    )
+      .then((results) => setAssets(results.flat()))
+      .finally(() => setLoading(false));
+  }, [albums, expanded]);
+
+  const toggleHidden = (assetId: string) => {
+    if (hiddenAssets.includes(assetId)) {
+      onHiddenAssetsChange(hiddenAssets.filter(id => id !== assetId));
+    } else {
+      onHiddenAssetsChange([...hiddenAssets, assetId]);
+    }
+  };
+
+  if (!expanded) {
+    return (
+      <button 
+        className="btn w-full text-sm" 
+        onClick={() => setExpanded(true)}
+      >
+        Show Immich Photos ({albums.length} album{albums.length !== 1 ? 's' : ''})
+      </button>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-blue-600">Click photos to hide/show them in the gallery</p>
+        <button 
+          className="text-xs text-blue-600 hover:text-blue-800 underline" 
+          onClick={() => setExpanded(false)}
+        >
+          Collapse
+        </button>
+      </div>
+      
+      {loading ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="aspect-square bg-gray-200 animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : assets.length > 0 ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 max-h-96 overflow-y-auto p-1">
+          {assets.map((asset) => {
+            const isHidden = hiddenAssets.includes(asset.id);
+            return (
+              <button
+                key={asset.id}
+                type="button"
+                onClick={() => toggleHidden(asset.id)}
+                className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
+                  isHidden 
+                    ? 'border-red-500 opacity-40 hover:opacity-60' 
+                    : 'border-green-500/50 hover:border-green-500'
+                }`}
+                title={isHidden ? 'Click to show' : 'Click to hide'}
+              >
+                <img 
+                  src={asset.thumbUrl} 
+                  alt="" 
+                  className="w-full h-full object-cover"
+                />
+                <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${
+                  isHidden ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`}>
+                  <div className={`px-2 py-1 rounded text-xs font-bold text-white shadow-lg ${
+                    isHidden ? 'bg-red-600' : 'bg-green-600'
+                  }`}>
+                    {isHidden ? '🚫 Hidden' : '✓ Visible'}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="text-xs text-gray-500 text-center py-4">No photos found in selected albums</p>
+      )}
+      
+      {assets.length > 0 && (
+        <div className="flex items-center justify-between pt-2 border-t border-blue-200">
+          <p className="text-xs text-blue-700">
+            {assets.length - hiddenAssets.length} visible • {hiddenAssets.length} hidden
+          </p>
+          {hiddenAssets.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onHiddenAssetsChange([])}
+              className="text-xs text-red-600 hover:text-red-800 underline font-medium"
+            >
+              Show all photos
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GalleryEditor({ section, onChange }: { section: any; onChange: (value: any) => void }) {
   const gallery = useMemo(() => ({
     ...section,
@@ -724,6 +849,7 @@ function GalleryEditor({ section, onChange }: { section: any; onChange: (value: 
       albums: Array.isArray(section.immich?.albums) ? section.immich.albums : [],
       limit: typeof section.immich?.limit === 'number' ? section.immich.limit : 60,
       randomize: section.immich?.randomize !== false,
+      hiddenAssets: Array.isArray(section.immich?.hiddenAssets) ? section.immich.hiddenAssets : [],
     },
   }), [section]);
 
@@ -950,6 +1076,27 @@ function GalleryEditor({ section, onChange }: { section: any; onChange: (value: 
               <span className="text-sm">Shuffle Immich photos on each load</span>
             </label>
           </div>
+          
+          {gallery.immich.albums.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50/50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h5 className="text-sm font-semibold text-blue-900">Manage Immich Photos</h5>
+                  <p className="text-xs text-blue-700 mt-0.5">Preview and hide specific photos from selected albums</p>
+                </div>
+                {gallery.immich.hiddenAssets.length > 0 && (
+                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                    {gallery.immich.hiddenAssets.length} hidden
+                  </span>
+                )}
+              </div>
+              <ImmichPhotoManager 
+                albums={gallery.immich.albums}
+                hiddenAssets={gallery.immich.hiddenAssets}
+                onHiddenAssetsChange={(hidden) => updateImmich({ hiddenAssets: hidden })}
+              />
+            </div>
+          )}
         </div>
       </div>
 

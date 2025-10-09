@@ -16,13 +16,13 @@ export default function InvitationHero({ data }: { data: any }) {
           </h2>
         </ScrollAnimation>
 
-        {/* Circular Images */}
-        <div className="grid md:grid-cols-2 gap-16 sm:gap-20 md:gap-12 max-w-5xl mx-auto items-center justify-items-center px-4">
+        {/* Circular Images - Horizontal on mobile too */}
+        <div className="grid grid-cols-2 gap-8 sm:gap-12 md:gap-12 max-w-5xl mx-auto items-start justify-items-center px-4">
           {/* Left Circle - Groom */}
           <FadeIn delay={0.3}>
             <ScaleIn delay={0.4}>
               <div className="relative group w-full flex justify-center">
-                <div className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden shadow-2xl border-4 sm:border-8 border-white ring-2 sm:ring-4 ring-blue-100 transition-all duration-500 group-hover:scale-105 group-hover:ring-blue-200">
+                <div className="w-36 h-36 sm:w-56 sm:h-56 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden shadow-2xl border-4 sm:border-6 md:border-8 border-white ring-2 sm:ring-3 md:ring-4 ring-blue-100 transition-all duration-500 group-hover:scale-105 group-hover:ring-blue-200">
                   {data.groomImage ? (
                     <img 
                       src={data.groomImage} 
@@ -36,9 +36,9 @@ export default function InvitationHero({ data }: { data: any }) {
                   )}
                 </div>
                 {data.groomName && (
-                  <div className="absolute -bottom-6 sm:-bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                    <div className="bg-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg border-2 border-blue-100">
-                      <p className="text-lg sm:text-xl md:text-2xl font-display font-semibold text-gray-800">{data.groomName}</p>
+                  <div className="absolute -bottom-4 sm:-bottom-6 md:-bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                    <div className="bg-white px-2 sm:px-4 md:px-6 py-1 sm:py-2 md:py-3 rounded-full shadow-lg border-2 border-blue-100">
+                      <p className="text-xs sm:text-base md:text-xl lg:text-2xl font-display font-semibold text-gray-800">{data.groomName}</p>
                     </div>
                   </div>
                 )}
@@ -50,7 +50,7 @@ export default function InvitationHero({ data }: { data: any }) {
           <FadeIn delay={0.5}>
             <ScaleIn delay={0.6}>
               <div className="relative group w-full flex justify-center">
-                <div className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden shadow-2xl border-4 sm:border-8 border-white ring-2 sm:ring-4 ring-pink-100 transition-all duration-500 group-hover:scale-105 group-hover:ring-pink-200">
+                <div className="w-36 h-36 sm:w-56 sm:h-56 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden shadow-2xl border-4 sm:border-6 md:border-8 border-white ring-2 sm:ring-3 md:ring-4 ring-pink-100 transition-all duration-500 group-hover:scale-105 group-hover:ring-pink-200">
                   {data.brideImage ? (
                     <img 
                       src={data.brideImage} 
@@ -64,9 +64,9 @@ export default function InvitationHero({ data }: { data: any }) {
                   )}
                 </div>
                 {data.brideName && (
-                  <div className="absolute -bottom-6 sm:-bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                    <div className="bg-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg border-2 border-pink-100">
-                      <p className="text-lg sm:text-xl md:text-2xl font-display font-semibold text-gray-800">{data.brideName}</p>
+                  <div className="absolute -bottom-4 sm:-bottom-6 md:-bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                    <div className="bg-white px-2 sm:px-4 md:px-6 py-1 sm:py-2 md:py-3 rounded-full shadow-lg border-2 border-pink-100">
+                      <p className="text-xs sm:text-base md:text-xl lg:text-2xl font-display font-semibold text-gray-800">{data.brideName}</p>
                     </div>
                   </div>
                 )}
@@ -77,7 +77,7 @@ export default function InvitationHero({ data }: { data: any }) {
 
         {/* Optional Message Below */}
         {data.message && (
-          <FadeIn delay={0.8} className="text-center mt-16 sm:mt-20 md:mt-24 px-4">
+          <FadeIn delay={0.8} className="text-center mt-12 sm:mt-16 md:mt-20 lg:mt-24 px-4">
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               {data.message}
             </p>
@@ -86,7 +86,7 @@ export default function InvitationHero({ data }: { data: any }) {
 
         {/* Optional Date Info */}
         {data.date && (
-          <FadeIn delay={1} className="text-center mt-6 sm:mt-8 px-4">
+          <FadeIn delay={1} className="text-center mt-4 sm:mt-6 md:mt-8 px-4">
             <div className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-pink-50 to-blue-50 rounded-full shadow-md">
               <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700">
                 {data.date}

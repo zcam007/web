@@ -11,6 +11,7 @@ type GalleryData = {
     albums?: string[];
     limit?: number;
     randomize?: boolean;
+    hiddenAssets?: string[];
   };
 };
 
@@ -34,6 +35,7 @@ export default async function Gallery({ data }: { data: GalleryData }) {
     const albums = data.immich.albums.filter(Boolean);
     const limit = Math.max(1, Math.min(200, data.immich.limit ?? 60));
     const perAlbum = Math.max(1, Math.ceil(limit / albums.length));
+    const hiddenAssets = Array.isArray(data.immich.hiddenAssets) ? data.immich.hiddenAssets : [];
 
     const albumResults = await Promise.allSettled(
       albums.map((albumId) => fetchImmichAlbumAssets(albumId, perAlbum))
@@ -41,7 +43,9 @@ export default async function Gallery({ data }: { data: GalleryData }) {
 
     const combined = albumResults.flatMap((result) =>
       result.status === 'fulfilled'
-        ? result.value.map((asset) => asset.thumbUrl || asset.originalUrl)
+        ? result.value
+            .filter((asset) => !hiddenAssets.includes(asset.id)) // Filter out hidden assets
+            .map((asset) => asset.thumbUrl || asset.originalUrl)
         : []
     );
 
@@ -86,12 +90,12 @@ export default async function Gallery({ data }: { data: GalleryData }) {
             {displayImages.length > 0 ? (
               <ScrollStagger
                 staggerDelay={0.08}
-                className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-4 lg:gap-5 mt-8 sm:mt-10 [column-fill:_balance]"
+                className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 gap-2 sm:gap-4 lg:gap-5 mt-8 sm:mt-10 [column-fill:_balance]"
               >
                 {displayImages.map((src, i) => (
-                  <StaggerItem key={`${src}-${i}`} className="mb-3 sm:mb-4 break-inside-avoid">
+                  <StaggerItem key={`${src}-${i}`} className="mb-2 sm:mb-4 break-inside-avoid">
                     <HoverScale scale={1.025}>
-                      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/40 backdrop-blur border border-white/30 shadow-lg">
+                      <div className="relative overflow-hidden rounded-lg sm:rounded-2xl bg-white/40 backdrop-blur border border-white/30 shadow-lg">
                         <img
                           src={src}
                           alt={`gallery ${i + 1}`}
