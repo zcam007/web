@@ -361,28 +361,28 @@ export default function Admin() {
   if (!cfg) return <div className="container py-20">Loading…</div>;
 
   return (
-    <div className="container py-10">
+    <div className="container py-6 sm:py-10">
       <h1 className="section-title">Page Builder</h1>
-      <p className="subtext">Drag to reorder sections. Click to edit text or replace images.</p>
+      <p className="subtext">Drag to reorder sections. Tap to edit content.</p>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/50 bg-white/70 px-6 py-4 shadow-xl backdrop-blur-xl">
-        <div className="flex items-center gap-3">
+      <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4 rounded-2xl sm:rounded-3xl border border-white/50 bg-white/70 px-4 sm:px-6 py-3 sm:py-4 shadow-xl backdrop-blur-xl">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <span
-            className={`h-3 w-3 rounded-full ${saveStatusDisplay.badge} ${saveStatusDisplay.pulse ? 'animate-pulse' : ''}`}
+            className={`h-3 w-3 flex-shrink-0 rounded-full ${saveStatusDisplay.badge} ${saveStatusDisplay.pulse ? 'animate-pulse' : ''}`}
           />
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-slate-900">{saveStatusDisplay.label}</div>
             {saveStatusDisplay.helper && (
-              <div className="text-xs uppercase tracking-[0.3em] text-slate-600/80">
+              <div className="text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-600/80 truncate">
                 {saveStatusDisplay.helper}
               </div>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-slate-900/30 ${
+            className={`rounded-full px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-slate-900/30 min-h-[44px] w-full sm:w-auto touch-manipulation ${
               hasUnsavedChanges
                 ? 'bg-slate-900 text-white shadow-lg hover:-translate-y-0.5 hover:shadow-xl'
                 : 'bg-white/80 text-slate-900 border border-slate-900/10 shadow-sm hover:-translate-y-0.5 hover:shadow-md'
@@ -395,14 +395,14 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="card mt-6">
-        <h2 className="text-xl font-semibold">Hero</h2>
-        <div className="grid md:grid-cols-2 gap-3 mt-3">
-          <input className="border rounded p-2" value={cfg.hero.title} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, title: e.target.value}})} />
-          <input className="border rounded p-2" value={cfg.hero.subtitle} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, subtitle: e.target.value}})} />
-          <input className="border rounded p-2" value={cfg.hero.date} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, date: e.target.value}})} />
-          <input className="border rounded p-2" value={cfg.hero.ctaText} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, ctaText: e.target.value}})} />
-          <input className="border rounded p-2" value={cfg.hero.ctaHref} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, ctaHref: e.target.value}})} />
+      <div className="card mt-4 sm:mt-6">
+        <h2 className="text-lg sm:text-xl font-semibold">Hero</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+          <input className="border rounded p-3 sm:p-2 text-base min-h-[44px] touch-manipulation" placeholder="Title" value={cfg.hero.title} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, title: e.target.value}})} />
+          <input className="border rounded p-3 sm:p-2 text-base min-h-[44px] touch-manipulation" placeholder="Subtitle" value={cfg.hero.subtitle} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, subtitle: e.target.value}})} />
+          <input className="border rounded p-3 sm:p-2 text-base min-h-[44px] touch-manipulation" placeholder="Date" value={cfg.hero.date} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, date: e.target.value}})} />
+          <input className="border rounded p-3 sm:p-2 text-base min-h-[44px] touch-manipulation" placeholder="CTA Text" value={cfg.hero.ctaText} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, ctaText: e.target.value}})} />
+          <input className="border rounded p-3 sm:p-2 text-base min-h-[44px] touch-manipulation" placeholder="CTA Link" value={cfg.hero.ctaHref} onChange={e=>setCfg({...cfg, hero: {...cfg.hero, ctaHref: e.target.value}})} />
         </div>
         <div className="mt-3">
           <label className="block text-sm">Hero Images</label>
@@ -418,8 +418,8 @@ export default function Admin() {
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold mt-8">Sections</h2>
-      <p className="text-sm opacity-70 mb-3">Drag handle (☰) to reorder • Toggle visibility • Edit content</p>
+      <h2 className="text-lg sm:text-xl font-semibold mt-6 sm:mt-8">Sections</h2>
+      <p className="text-sm opacity-70 mb-3">Drag ☰ to reorder • Tap to edit</p>
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={cfg.sections.map((_:any, i:number)=>i.toString())} strategy={verticalListSortingStrategy}>
           {cfg.sections.map((sec: any, i: number) => (
@@ -429,15 +429,15 @@ export default function Admin() {
                 copy[i] = s;
                 setCfg({ ...cfg, sections: copy });
               }} />
-              <div className="flex gap-2 mt-3">
+              <div className="flex flex-col sm:flex-row gap-2 mt-3">
                 <button 
-                  className={`flex-1 px-4 py-2 rounded-lg border transition-all ${sec.visible !== false ? 'bg-green-100 border-green-500 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-500'}`}
+                  className={`flex-1 px-4 py-3 sm:py-2 rounded-lg border transition-all min-h-[44px] touch-manipulation text-sm sm:text-base ${sec.visible !== false ? 'bg-green-100 border-green-500 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-500'}`}
                   onClick={()=>{
                     const copy = [...cfg.sections]; 
                     copy[i] = {...copy[i], visible: copy[i].visible === false ? true : false}; 
                     setCfg({...cfg, sections: copy});
                   }}
-                  title={sec.visible !== false ? 'Click to hide' : 'Click to show'}
+                  title={sec.visible !== false ? 'Tap to hide' : 'Tap to show'}
                 >
                   {sec.visible !== false ? '👁️ Visible' : '🚫 Hidden'}
                 </button>
@@ -1019,41 +1019,149 @@ function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list:
     onChange(copy);
   }
 
+  // Helper to show where text will position based on focus
+  const getTextPositionLabel = (focusX: number, focusY: number) => {
+    // Mobile positioning (vertical only)
+    let mobile = '';
+    if (focusY < 40) mobile = 'BOTTOM';
+    else if (focusY > 60) mobile = 'TOP';
+    else mobile = 'BOTTOM';
+    
+    // Desktop positioning (2D)
+    let desktop = '';
+    if (focusY < 33) {
+      if (focusX < 33) desktop = 'BOTTOM-RIGHT';
+      else if (focusX > 66) desktop = 'BOTTOM-LEFT';
+      else desktop = 'BOTTOM';
+    } else if (focusY > 66) {
+      if (focusX < 33) desktop = 'TOP-RIGHT';
+      else if (focusX > 66) desktop = 'TOP-LEFT';
+      else desktop = 'TOP';
+    } else {
+      if (focusX < 40) desktop = 'RIGHT';
+      else if (focusX > 60) desktop = 'LEFT';
+      else desktop = 'BOTTOM';
+    }
+    
+    return { mobile, desktop };
+  };
+
+  const getTextPositionColor = (focusX: number, focusY: number) => {
+    // Green if text will be well-positioned away from center
+    const awayFromCenter = (focusY < 40 || focusY > 60 || focusX < 40 || focusX > 60);
+    return awayFromCenter 
+      ? 'bg-green-50 text-green-800 border-green-200'
+      : 'bg-amber-50 text-amber-800 border-amber-200';
+  };
+
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3 sm:p-4 text-sm text-blue-800">
+        <p className="font-semibold mb-2 flex items-center gap-2">
+          🎯 Smart Text Positioning
+          <span className="text-xs font-normal bg-blue-200 text-blue-900 px-2 py-0.5 rounded-full">AI-Powered</span>
+        </p>
+        <div className="space-y-2 text-xs leading-relaxed">
+          <p><span className="font-semibold">📱 Mobile:</span> Text moves <strong>above or below</strong> faces (vertical only)</p>
+          <p><span className="font-semibold">💻 Desktop:</span> Text moves to <strong>corners, sides, or edges</strong> (full 2D positioning)</p>
+          <p className="text-blue-600 mt-2 pt-2 border-t border-blue-200">Adjust the sliders below to mark where faces are in each photo. The text will intelligently avoid those areas on both mobile and desktop!</p>
+        </div>
+      </div>
       <div className="flex flex-wrap gap-4">
         {heroImages.map((img, i) => (
           <div key={img.url + i} className="border rounded-lg p-3 bg-white/80 w-full md:w-64">
-            <div className="relative w-full h-36 overflow-hidden rounded-lg border">
+            <div className="relative w-full h-36 overflow-hidden rounded-lg border bg-gray-900">
               <img
                 src={img.url}
                 alt="Hero"
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ objectPosition: `${img.focusX}% ${img.focusY}%` }}
               />
+              {/* Focus point indicator */}
+              <div 
+                className="absolute w-6 h-6 rounded-full border-4 border-red-500 bg-red-500/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
+                style={{ left: `${img.focusX}%`, top: `${img.focusY}%` }}
+              >
+                <div className="absolute inset-0 rounded-full border-2 border-white animate-ping" />
+              </div>
+              {/* Text position preview - Desktop */}
+              <div className="hidden sm:block absolute inset-0 pointer-events-none">
+                {(() => {
+                  const { desktop } = getTextPositionLabel(img.focusX, img.focusY);
+                  const positionClass = desktop.includes('TOP') ? 'top-2' : desktop.includes('BOTTOM') ? 'bottom-2' : 'top-1/2 -translate-y-1/2';
+                  const horizontalClass = desktop.includes('LEFT') ? 'left-2' : desktop.includes('RIGHT') ? 'right-2' : 'left-1/2 -translate-x-1/2';
+                  return (
+                    <div className={`absolute ${positionClass} ${horizontalClass} bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-gray-700 shadow-lg border border-gray-300 transform`}>
+                      💻 TEXT
+                    </div>
+                  );
+                })()}
+              </div>
+              {/* Text position preview - Mobile */}
+              <div className="sm:hidden absolute inset-0 pointer-events-none">
+                {(() => {
+                  const { mobile } = getTextPositionLabel(img.focusX, img.focusY);
+                  const positionClass = mobile === 'TOP' ? 'top-2' : 'bottom-2';
+                  return (
+                    <div className={`absolute ${positionClass} left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-gray-700 shadow-lg border border-gray-300`}>
+                      📱 TEXT
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            {/* Position indicator */}
+            <div className={`mt-2 px-2 py-1.5 rounded-lg text-[11px] font-semibold border ${getTextPositionColor(img.focusX, img.focusY)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1">
+                  <span className="text-[9px] opacity-60">📱</span>
+                  {getTextPositionLabel(img.focusX, img.focusY).mobile}
+                </span>
+                <span className="w-px h-3 bg-current opacity-20" />
+                <span className="flex items-center gap-1">
+                  <span className="text-[9px] opacity-60">💻</span>
+                  {getTextPositionLabel(img.focusX, img.focusY).desktop}
+                </span>
+              </div>
             </div>
             <div className="mt-3 space-y-2">
               <div>
-                <label className="text-xs font-semibold block">Horizontal focus ({Math.round(img.focusX)}%)</label>
+                <label className="text-xs font-semibold block text-gray-700">
+                  ↔️ Horizontal Focus ({Math.round(img.focusX)}%)
+                  <span className="text-[10px] font-normal ml-1 text-gray-500">• Where are faces horizontally?</span>
+                </label>
                 <input
                   type="range"
                   min={0}
                   max={100}
                   value={img.focusX}
-                    onChange={(e) => updateImage(i, { focusX: Number(e.target.value) })}
-                  className="w-full"
+                  onChange={(e) => updateImage(i, { focusX: Number(e.target.value) })}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
+                <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+                  <span>Left</span>
+                  <span>Center</span>
+                  <span>Right</span>
+                </div>
               </div>
               <div>
-                <label className="text-xs font-semibold block">Vertical focus ({Math.round(img.focusY)}%)</label>
+                <label className="text-xs font-semibold block text-gray-700">
+                  ↕️ Vertical Focus ({Math.round(img.focusY)}%)
+                  <span className="text-[10px] font-normal ml-1 text-gray-500">• Where are faces vertically?</span>
+                </label>
                 <input
                   type="range"
                   min={0}
                   max={100}
                   value={img.focusY}
-                    onChange={(e) => updateImage(i, { focusY: Number(e.target.value) })}
-                  className="w-full"
+                  onChange={(e) => updateImage(i, { focusY: Number(e.target.value) })}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
+                <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+                  <span>Top</span>
+                  <span>Middle</span>
+                  <span>Bottom</span>
+                </div>
               </div>
               <input
                 className="border rounded p-2 w-full text-sm"
@@ -1480,25 +1588,25 @@ function MediaLibrary({ mode = 'single', onConfirm, onClose }: MediaLibraryProps
   const selectedCount = selection.size;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4">
       <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-6xl h-[85vh] glass-panel overflow-hidden">
+      <div className="relative w-full max-w-6xl h-[95vh] sm:h-[85vh] glass-panel overflow-hidden rounded-t-3xl sm:rounded-3xl">
         <button
           type="button"
           aria-label="Close media library"
-          className="absolute right-5 top-5 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-slate-900 hover:bg-white shadow-lg"
+          className="absolute right-3 sm:right-5 top-3 sm:top-5 z-10 rounded-full bg-white/90 px-4 py-2 sm:px-3 sm:py-1 text-sm font-medium text-slate-900 hover:bg-white shadow-lg min-h-[44px] touch-manipulation"
           onClick={onClose}
         >
           Close ✕
         </button>
 
-        <div className="flex h-full">
-          <aside className="w-64 border-r border-white/20 bg-white/10 backdrop-blur-xl px-4 py-6">
-            <h2 className="text-lg font-semibold uppercase tracking-[0.3em] text-slate-900">Sources</h2>
-            <div className="mt-4 space-y-2">
+        <div className="flex flex-col sm:flex-row h-full">
+          <aside className="w-full sm:w-64 border-b sm:border-b-0 sm:border-r border-white/20 bg-white/10 backdrop-blur-xl px-4 py-4 sm:py-6 flex-shrink-0">
+            <h2 className="text-base sm:text-lg font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-900">Sources</h2>
+            <div className="mt-3 sm:mt-4 flex sm:flex-col gap-2">
               <button
                 type="button"
-                className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
+                className={`flex-1 sm:w-full rounded-xl sm:rounded-2xl px-4 py-3 text-left text-sm font-medium transition min-h-[44px] touch-manipulation ${
                   activeSource === 'local'
                     ? 'bg-white text-slate-900 shadow-lg'
                     : 'bg-white/5 text-slate-900 hover:bg-white/10'
@@ -1512,7 +1620,7 @@ function MediaLibrary({ mode = 'single', onConfirm, onClose }: MediaLibraryProps
               </button>
               <button
                 type="button"
-                className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
+                className={`flex-1 sm:w-full rounded-xl sm:rounded-2xl px-4 py-3 text-left text-sm font-medium transition min-h-[44px] touch-manipulation ${
                   activeSource === 'immich'
                     ? 'bg-white text-slate-900 shadow-lg'
                     : 'bg-white/5 text-slate-900 hover:bg-white/10'
@@ -1547,11 +1655,11 @@ function MediaLibrary({ mode = 'single', onConfirm, onClose }: MediaLibraryProps
             )}
           </aside>
 
-          <div className="flex flex-1 flex-col bg-white/20 backdrop-blur-xl">
-            <header className="flex items-center justify-between border-b border-white/20 px-6 py-4">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900/90">{activeSource === 'local' ? 'Local uploads' : currentAlbum ? currentAlbum.name : 'Immich albums'}</h3>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-700/60">
+          <div className="flex flex-1 flex-col bg-white/20 backdrop-blur-xl min-h-0">
+            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/20 px-4 sm:px-6 py-3 sm:py-4 gap-3 sm:gap-0 flex-shrink-0">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base sm:text-lg font-semibold text-slate-900/90 truncate">{activeSource === 'local' ? 'Local uploads' : currentAlbum ? currentAlbum.name : 'Immich albums'}</h3>
+                <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-700/60">
                   {activeSource === 'local'
                     ? `${images.length} images available`
                     : currentAlbum
@@ -1559,16 +1667,16 @@ function MediaLibrary({ mode = 'single', onConfirm, onClose }: MediaLibraryProps
                       : `${immichAlbums.length} albums connected`}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
                 {activeSource === 'local' && (
                   <>
                     <button
                       type="button"
-                      className="rounded-full border border-slate-800/20 bg-white px-4 py-2 text-sm font-medium shadow-sm hover:-translate-y-0.5 hover:shadow-lg"
+                      className="rounded-full border border-slate-800/20 bg-white px-4 sm:px-5 py-2.5 sm:py-2 text-sm font-medium shadow-sm hover:-translate-y-0.5 hover:shadow-lg min-h-[44px] touch-manipulation flex-1 sm:flex-initial"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploading}
                     >
-                      {uploading ? `Uploading ${uploadProgress.toFixed(0)}%` : 'Upload image'}
+                      {uploading ? `${uploadProgress.toFixed(0)}%` : 'Upload'}
                     </button>
                     <input
                       ref={fileInputRef}
@@ -1586,17 +1694,17 @@ function MediaLibrary({ mode = 'single', onConfirm, onClose }: MediaLibraryProps
                 {showConfirmBar && (
                   <button
                     type="button"
-                    className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-lg transition disabled:opacity-50"
+                    className="rounded-full bg-slate-900 px-5 sm:px-6 py-2.5 sm:py-2 text-sm font-semibold text-white shadow-lg transition disabled:opacity-50 min-h-[44px] touch-manipulation flex-1 sm:flex-initial"
                     onClick={handleConfirm}
                     disabled={!selectedCount}
                   >
-                    Add {selectedCount ? `${selectedCount} photo${selectedCount > 1 ? 's' : ''}` : 'photos'}
+                    Add {selectedCount ? `${selectedCount}` : '0'}
                   </button>
                 )}
               </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 min-h-0">
               {activeSource === 'local' ? renderLocalGrid() : renderImmichContent()}
             </div>
           </div>

@@ -13,23 +13,18 @@
       },
       {
         "url": "/uploads/1759452449044-1frulrzkmt1.png",
-        "focusX": 49,
-        "focusY": 39
+        "focusX": 34,
+        "focusY": 61
       },
       {
         "url": "/uploads/1759441393254-pchkaq1jw78.jpeg",
-        "focusX": 50,
-        "focusY": 32
+        "focusX": 16,
+        "focusY": 35
       },
       {
         "url": "/uploads/1759442950683-46ihlk3ukes.jpeg",
-        "focusX": 50,
-        "focusY": 50
-      },
-      {
-        "url": "/uploads/1759516578859-q80bwm9x24f.jpg",
-        "focusX": 72,
-        "focusY": 50
+        "focusX": 13,
+        "focusY": 53
       },
       {
         "url": "/uploads/1759516596232-12125wpty9ao.jpeg",
@@ -39,7 +34,7 @@
       {
         "url": "/api/immich/assets/2499b1fd-9d0d-4b1c-a99b-d0f4c000be3e/thumbnail?size=preview",
         "focusX": 50,
-        "focusY": 50
+        "focusY": 63
       }
     ]
   },

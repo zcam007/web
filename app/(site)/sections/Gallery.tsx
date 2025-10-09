@@ -67,16 +67,16 @@ export default async function Gallery({ data }: { data: GalleryData }) {
   const displayImages = merged.length > 0 ? merged : localImages;
 
   return (
-    <section className="relative py-20 sm:py-24" id="gallery">
+    <section className="relative py-12 sm:py-20 lg:py-24" id="gallery">
       <div className="container mx-auto px-4">
-        <div className="glass-panel p-10 sm:p-14">
+        <div className="glass-panel p-6 sm:p-10 lg:p-14">
           <div className="relative">
             <ScrollAnimation className="text-center">
               <div className="inline-flex flex-col items-center gap-1">
-                <div className="text-5xl mb-2">🖼️</div>
+                <div className="text-4xl sm:text-5xl mb-2">🖼️</div>
                 <h2 className="section-title">{data.heading}</h2>
                 {mode !== 'local' && immichConfig.configured && (
-                  <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-60">
                     Synced with Immich
                   </p>
                 )}
@@ -86,12 +86,12 @@ export default async function Gallery({ data }: { data: GalleryData }) {
             {displayImages.length > 0 ? (
               <ScrollStagger
                 staggerDelay={0.08}
-                className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 sm:gap-5 mt-10 [column-fill:_balance]"
+                className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-4 lg:gap-5 mt-8 sm:mt-10 [column-fill:_balance]"
               >
                 {displayImages.map((src, i) => (
-                  <StaggerItem key={`${src}-${i}`} className="mb-4 break-inside-avoid">
+                  <StaggerItem key={`${src}-${i}`} className="mb-3 sm:mb-4 break-inside-avoid">
                     <HoverScale scale={1.025}>
-                      <div className="relative overflow-hidden rounded-2xl bg-white/40 backdrop-blur border border-white/30 shadow-lg">
+                      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/40 backdrop-blur border border-white/30 shadow-lg">
                         <img
                           src={src}
                           alt={`gallery ${i + 1}`}
@@ -104,7 +104,7 @@ export default async function Gallery({ data }: { data: GalleryData }) {
                 ))}
               </ScrollStagger>
             ) : (
-              <div className="mt-10 text-center text-sm opacity-70">
+              <div className="mt-8 sm:mt-10 text-center text-sm opacity-70 px-4">
                 No photos yet. Add uploads or connect an Immich shared album from the admin panel.
               </div>
             )}

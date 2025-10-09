@@ -3,9 +3,9 @@
   "private": true,
   "version": "1.0.1",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3006",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3006",
     "postinstall": "if [ \"$NODE_ENV\" = \"production\" ]; then npm install --os=linux --cpu=x64 sharp; fi"
   },
   "dependencies": {

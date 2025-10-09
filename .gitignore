@@ -40,3 +40,5 @@ out/
 
 public/uploads
 public
+data/site.json
+site.json

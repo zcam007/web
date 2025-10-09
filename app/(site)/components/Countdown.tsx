@@ -17,12 +17,12 @@ export default function Countdown({ target }: { target: string }) {
     return () => clearInterval(t);
   }, [target]);
   return (
-    <div className="flex gap-4 text-center justify-center mt-4">
+    <div className="flex gap-2 sm:gap-3 md:gap-4 text-center justify-center mt-4 sm:mt-6 px-4">
       {Object.entries(left).map(([k,v]) => (
        
         <HoverScale key={k} scale={1.1}>
           <motion.div 
-            className="w-24 rounded-2xl shadow-lg p-6 transition-all duration-300 border border-white/20"
+            className="w-16 sm:w-20 md:w-24 rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 transition-all duration-300 border border-white/20"
             style={{ 
               backgroundColor: 'rgba(255, 255, 255, 0.15)',
               backdropFilter: 'blur(4px) saturate(180%)',
@@ -36,7 +36,7 @@ export default function Countdown({ target }: { target: string }) {
             <AnimatePresence mode="wait">
               <motion.div
                 key={v}
-                className="text-3xl font-semibold"
+                className="text-xl sm:text-2xl md:text-3xl font-semibold"
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
@@ -45,7 +45,7 @@ export default function Countdown({ target }: { target: string }) {
                 {v}
               </motion.div>
             </AnimatePresence>
-            <div className="opacity-90 uppercase text-xs font-medium">{k}</div>
+            <div className="opacity-90 uppercase text-[10px] sm:text-xs font-medium mt-1">{k}</div>
           </motion.div>
         </HoverScale>
       ))}
