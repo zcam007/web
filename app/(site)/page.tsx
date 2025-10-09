@@ -8,11 +8,14 @@ import RSVP from './sections/RSVP';
 import Map from './sections/Map';
 import Invitation from './sections/Invitation';
 import InvitationHero from './sections/InvitationHero';
+import Script from 'next/script'
 
 export default async function Page() {
   const cfg = await readConfig();
   return (
     <main>
+            <Script src="http://192.168.4.253:3000/script.js" data-website-id="9f5dcb8e-3ba6-4a8d-a9bb-e160448f64a3" />
+
       <Hero data={cfg.hero} />
       {cfg.sections.map((sec: any, i: number) => {
         // Skip hidden sections
