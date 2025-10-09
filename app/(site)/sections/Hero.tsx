@@ -144,7 +144,7 @@ export default function Hero({ data }: { data: any }) {
         <StaggerItem>
           <Countdown target={data.date} />
         </StaggerItem>
-        <StaggerItem>
+        {/* <StaggerItem>
           <TapScale>
             <a 
               href={data.ctaHref} 
@@ -153,7 +153,7 @@ export default function Hero({ data }: { data: any }) {
               {data.ctaText}
             </a>
           </TapScale>
-        </StaggerItem>
+        </StaggerItem> */}
       </StaggerContainer>
     </section>
   );
