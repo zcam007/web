@@ -5,8 +5,8 @@ import { StaggerContainer, StaggerItem, TapScale } from '../components/Animation
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap');
 </style>
-type HeroImageInput = string | { url?: string; focusX?: number; focusY?: number };
-type HeroImage = { url: string; focusX: number; focusY: number };
+type HeroImageInput = string | { url?: string; focusX?: number; focusY?: number; zoom?: number };
+type HeroImage = { url: string; focusX: number; focusY: number; zoom: number };
 
 function clamp01(value: number | undefined, fallback = 50) {
   if (typeof value !== 'number' || Number.isNaN(value)) return fallback;
@@ -18,14 +18,15 @@ function normalizeImages(list: HeroImageInput[] | undefined): HeroImage[] {
   return list
     .map((item) => {
       if (typeof item === 'string') {
-        return { url: item, focusX: 50, focusY: 50 };
+        return { url: item, focusX: 50, focusY: 50, zoom: 1 };
       }
       const url = item?.url ?? '';
       if (!url) return null;
       return {
         url,
         focusX: clamp01(item?.focusX),
-        focusY: clamp01(item?.focusY)
+        focusY: clamp01(item?.focusY),
+        zoom: typeof item?.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1,
       };
     })
     .filter((item): item is HeroImage => item !== null);
@@ -118,6 +119,7 @@ export default function Hero({ data }: { data: any }) {
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === idx ? 'opacity-100' : 'opacity-0'}`}
           style={{ 
             objectPosition: `${img.focusX}% ${img.focusY}%`,
+            transform: `scale(${img.zoom})`,
           }}
         />
       ))}

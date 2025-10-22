@@ -3,9 +3,11 @@ import { fetchImmichAlbumAssets, getImmichConfigStatus } from '../lib/immich';
 
 type GalleryMode = 'local' | 'immich' | 'hybrid';
 
+type GalleryImage = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
+
 type GalleryData = {
   heading: string;
-  images?: string[];
+  images?: GalleryImage[];
   mode?: GalleryMode;
   immich?: {
     albums?: string[];
@@ -14,6 +16,25 @@ type GalleryData = {
     hiddenAssets?: string[];
   };
 };
+
+type NormalizedImage = {
+  url: string;
+  focusX: number;
+  focusY: number;
+  zoom: number;
+};
+
+function normalizeGalleryImage(item: GalleryImage): NormalizedImage {
+  if (typeof item === 'string') {
+    return { url: item, focusX: 50, focusY: 50, zoom: 1 };
+  }
+  return {
+    url: item.url || '',
+    focusX: typeof item.focusX === 'number' ? Math.min(100, Math.max(0, item.focusX)) : 50,
+    focusY: typeof item.focusY === 'number' ? Math.min(100, Math.max(0, item.focusY)) : 50,
+    zoom: typeof item.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1,
+  };
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -26,9 +47,10 @@ function shuffle<T>(arr: T[]): T[] {
 
 export default async function Gallery({ data }: { data: GalleryData }) {
   const mode: GalleryMode = data.mode ?? (data.immich?.albums?.length ? 'hybrid' : 'local');
-  const localImages = Array.isArray(data.images) ? data.images : [];
+  const rawLocalImages = Array.isArray(data.images) ? data.images : [];
+  const localImages = rawLocalImages.map(normalizeGalleryImage);
 
-  let immichImages: string[] = [];
+  let immichImages: NormalizedImage[] = [];
   const immichConfig = getImmichConfigStatus();
 
   if (mode !== 'local' && immichConfig.configured && data.immich?.albums?.length) {
@@ -45,17 +67,24 @@ export default async function Gallery({ data }: { data: GalleryData }) {
       result.status === 'fulfilled'
         ? result.value
             .filter((asset) => !hiddenAssets.includes(asset.id)) // Filter out hidden assets
-            .map((asset) => asset.thumbUrl || asset.originalUrl)
+            .map((asset) => ({
+              url: asset.thumbUrl || asset.originalUrl,
+              focusX: 50,
+              focusY: 50,
+              zoom: 1,
+            }))
         : []
     );
 
-    const uniqueRemote = Array.from(new Set(combined));
+    const uniqueRemote = Array.from(
+      new Map(combined.map(img => [img.url, img])).values()
+    );
     immichImages = data.immich.randomize === false
       ? uniqueRemote.slice(0, limit)
       : shuffle(uniqueRemote).slice(0, limit);
   }
 
-  let merged: string[] = [];
+  let merged: NormalizedImage[] = [];
   if (mode === 'immich') {
     merged = immichImages;
   } else if (mode === 'local') {
@@ -92,14 +121,18 @@ export default async function Gallery({ data }: { data: GalleryData }) {
                 staggerDelay={0.08}
                 className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 gap-2 sm:gap-4 lg:gap-5 mt-8 sm:mt-10 [column-fill:_balance]"
               >
-                {displayImages.map((src, i) => (
-                  <StaggerItem key={`${src}-${i}`} className="mb-2 sm:mb-4 break-inside-avoid">
+                {displayImages.map((img, i) => (
+                  <StaggerItem key={`${img.url}-${i}`} className="mb-2 sm:mb-4 break-inside-avoid">
                     <HoverScale scale={1.025}>
                       <div className="relative overflow-hidden rounded-lg sm:rounded-2xl bg-white/40 backdrop-blur border border-white/30 shadow-lg">
                         <img
-                          src={src}
+                          src={img.url}
                           alt={`gallery ${i + 1}`}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-[1.05]"
+                          style={{ 
+                            objectPosition: `${img.focusX}% ${img.focusY}%`,
+                            transform: `scale(${img.zoom})`
+                          }}
                           loading="lazy"
                         />
                       </div>

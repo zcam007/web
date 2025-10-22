@@ -1,13 +1,32 @@
 import { ScrollAnimation, FadeIn } from '../components/AnimationWrappers';
 
+type ImageWithFocus = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
+
+function normalizeImage(item: ImageWithFocus): { url: string; focusX: number; focusY: number; zoom: number } {
+  if (!item) return { url: '', focusX: 50, focusY: 50, zoom: 1 };
+  if (typeof item === 'string') {
+    return { url: item, focusX: 50, focusY: 50, zoom: 1 };
+  }
+  return {
+    url: item.url || '',
+    focusX: typeof item.focusX === 'number' ? Math.min(100, Math.max(0, item.focusX)) : 50,
+    focusY: typeof item.focusY === 'number' ? Math.min(100, Math.max(0, item.focusY)) : 50,
+    zoom: typeof item.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1,
+  };
+}
+
 export default function Invitation({ data }: { data: any }) {
+  const image = normalizeImage(data.image);
+  
   return (
     <section className="relative py-32 overflow-hidden" id="invitation">
       {/* Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-no-repeat"
         style={{
-          backgroundImage: data.image ? `url(${data.image})` : 'linear-gradient(135deg, rgba(199, 154, 109, 0.3), rgba(156, 106, 67, 0.3))',
+          backgroundImage: image.url ? `url(${image.url})` : 'linear-gradient(135deg, rgba(199, 154, 109, 0.3), rgba(156, 106, 67, 0.3))',
+          backgroundPosition: `${image.focusX}% ${image.focusY}%`,
+          backgroundSize: image.zoom !== 1 ? `${image.zoom * 100}%` : 'cover',
         }}
       >
         <div className="absolute inset-0 bg-black/50"></div>

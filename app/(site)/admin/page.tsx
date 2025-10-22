@@ -29,6 +29,7 @@ type HeroImage = {
   url: string;
   focusX: number; // 0 - 100
   focusY: number; // 0 - 100
+  zoom: number; // 0.5 - 3.0
 };
 
 type GalleryMode = 'local' | 'immich' | 'hybrid';
@@ -67,12 +68,13 @@ function normalizeHeroImages(list: any): HeroImage[] {
   return (list ?? [])
     .map((item: any) => {
       if (typeof item === 'string') {
-        return { url: item, focusX: 50, focusY: 50 };
+        return { url: item, focusX: 50, focusY: 50, zoom: 1 };
       }
       const url = item?.url || item?.src || '';
       const focusX = clamp01(item?.focusX);
       const focusY = clamp01(item?.focusY);
-      return { url, focusX, focusY };
+      const zoom = typeof item?.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1;
+      return { url, focusX, focusY, zoom };
     })
     .filter((it: HeroImage) => !!it.url);
 }
@@ -516,8 +518,8 @@ function SectionEditor({ section, onChange }: any) {
           <input className="border rounded p-2" placeholder="Groom bio" value={section.groom?.bio||''} onChange={e=>onChange({...section, groom:{...section.groom, bio:e.target.value}})} />
         </div>
         <div className="mt-3">
-          <label className="block text-sm">Couple Image</label>
-          <ImagePicker value={section.image} onChange={(v:string)=>onChange({...section, image: v})} />
+          <label className="block text-sm">Couple Image (with Focus Point)</label>
+          <ImagePickerWithFocus value={section.image} onChange={(v:ImageWithFocus)=>onChange({...section, image: v})} />
         </div>
       </div>
     );
@@ -577,8 +579,8 @@ function SectionEditor({ section, onChange }: any) {
         </div>
         <input className="border rounded p-2 w-full mt-2" placeholder="Note (e.g., contact info)" value={section.note||''} onChange={e=>onChange({...section, note: e.target.value})} />
         <div className="mt-3">
-          <label className="block text-sm">Background Image</label>
-          <ImagePicker value={section.image} onChange={(v:string)=>onChange({...section, image: v})} />
+          <label className="block text-sm">Background Image (with Focus Point)</label>
+          <ImagePickerWithFocus value={section.image} onChange={(v:ImageWithFocus)=>onChange({...section, image: v})} />
         </div>
       </div>
     );
@@ -593,12 +595,12 @@ function SectionEditor({ section, onChange }: any) {
           <input className="border rounded p-2" placeholder="Groom Name" value={section.groomName||''} onChange={e=>onChange({...section, groomName: e.target.value})} />
         </div>
         <div className="mt-3">
-          <label className="block text-sm">Bride Image (Circular)</label>
-          <ImagePicker value={section.brideImage} onChange={(v:string)=>onChange({...section, brideImage: v})} />
+          <label className="block text-sm">Bride Image (Circular - with Focus Point)</label>
+          <ImagePickerWithFocus value={section.brideImage} onChange={(v:ImageWithFocus)=>onChange({...section, brideImage: v})} />
         </div>
         <div className="mt-3">
-          <label className="block text-sm">Groom Image (Circular)</label>
-          <ImagePicker value={section.groomImage} onChange={(v:string)=>onChange({...section, groomImage: v})} />
+          <label className="block text-sm">Groom Image (Circular - with Focus Point)</label>
+          <ImagePickerWithFocus value={section.groomImage} onChange={(v:ImageWithFocus)=>onChange({...section, groomImage: v})} />
         </div>
         <textarea className="border rounded p-2 w-full mt-3" rows={2} placeholder="Message (optional)" value={section.message||''} onChange={e=>onChange({...section, message: e.target.value})} />
         <input className="border rounded p-2 w-full mt-2" placeholder="Date (e.g., 26th November 2025)" value={section.date||''} onChange={e=>onChange({...section, date: e.target.value})} />
@@ -644,7 +646,7 @@ function EventRepeater({ items, onChange }: any) {
     const c=[...list]; c.splice(i,1); onChange(c); 
   }
   
-  function upd(i:number, key:string, val:string) { 
+  function upd(i:number, key:string, val:any) { 
     const c=[...list]; c[i] = {...c[i], [key]: val}; onChange(c); 
   }
   
@@ -685,8 +687,8 @@ function EventRepeater({ items, onChange }: any) {
               onChange={e=>upd(i, 'description', e.target.value)} 
             />
             <div>
-              <label className="block text-sm mb-1">Event Image</label>
-              <ImagePicker value={it.image} onChange={(v:string)=>upd(i, 'image', v)} />
+              <label className="block text-sm mb-1">Event Image (with Focus Point)</label>
+              <ImagePickerWithFocus value={it.image} onChange={(v:ImageWithFocus)=>upd(i, 'image', v)} />
             </div>
           </div>
         </div>
@@ -694,6 +696,20 @@ function EventRepeater({ items, onChange }: any) {
       <button className="btn btn-primary" onClick={add}>Add Event</button>
     </div>
   );
+}
+
+type ImageWithFocus = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
+
+function normalizeImageWithFocus(item: ImageWithFocus): { url: string; focusX: number; focusY: number; zoom: number } {
+  if (typeof item === 'string') {
+    return { url: item, focusX: 50, focusY: 50, zoom: 1 };
+  }
+  return {
+    url: item.url || '',
+    focusX: clamp01(item.focusX),
+    focusY: clamp01(item.focusY),
+    zoom: typeof item.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1,
+  };
 }
 
 function ImagePicker({ value, onChange }: { value: string, onChange: (url: string) => void }) {
@@ -722,30 +738,259 @@ function ImagePicker({ value, onChange }: { value: string, onChange: (url: strin
   );
 }
 
-function ImagePickerList({ list, onChange }: { list: string[], onChange: (urls: string[]) => void }) {
+function ImagePickerWithFocus({ value, onChange }: { value: ImageWithFocus, onChange: (val: ImageWithFocus) => void }) {
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showFocusEditor, setShowFocusEditor] = useState(false);
+  
+  const normalized = normalizeImageWithFocus(value);
+  
   const handleConfirm = useCallback((urls: string[]) => {
-    if (urls.length > 0) {
-      onChange([...(list || []), ...urls.filter(Boolean)]);
+    if (urls[0]) {
+      onChange({ url: urls[0], focusX: 50, focusY: 50, zoom: 1 });
     }
     setShowLibrary(false);
-  }, [list, onChange]);
+  }, [onChange]);
+  
+  const updateFocus = (patch: { focusX?: number; focusY?: number; zoom?: number }) => {
+    onChange({
+      url: normalized.url,
+      focusX: clamp01(patch.focusX ?? normalized.focusX),
+      focusY: clamp01(patch.focusY ?? normalized.focusY),
+      zoom: typeof patch.zoom === 'number' ? Math.min(3, Math.max(0.5, patch.zoom)) : normalized.zoom,
+    });
+  };
 
-  function rm(i:number) {
-    const copy = [...(list||[])]; copy.splice(i,1); onChange(copy);
+  return (
+    <div>
+      <div className="flex items-start gap-3">
+        {normalized.url && (
+          <div className="relative group">
+            <div className="w-32 h-32 overflow-hidden rounded-lg border bg-gray-900">
+              <img 
+                src={normalized.url} 
+                alt="" 
+                className="w-full h-full object-cover" 
+                style={{ 
+                  objectPosition: `${normalized.focusX}% ${normalized.focusY}%`,
+                  transform: `scale(${normalized.zoom})`
+                }}
+              />
+              {/* Focus point indicator */}
+              <div 
+                className="absolute w-4 h-4 rounded-full border-2 border-red-500 bg-red-500/50 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ left: `${normalized.focusX}%`, top: `${normalized.focusY}%` }}
+              />
+            </div>
+            <button
+              className="absolute bottom-1 right-1 btn text-xs bg-blue-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => setShowFocusEditor(!showFocusEditor)}
+            >
+              🎯
+            </button>
+          </div>
+        )}
+        <div className="flex flex-col gap-2">
+          <button className="btn" onClick={() => setShowLibrary(true)}>Choose Image</button>
+          {normalized.url && showFocusEditor && (
+            <div className="p-3 bg-white border rounded-lg shadow-lg w-64">
+              <div className="text-xs font-semibold mb-2">Focus Point & Zoom</div>
+              <div className="space-y-2">
+                <div>
+                  <label className="text-[10px] block">↔️ Horizontal ({Math.round(normalized.focusX)}%)</label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={normalized.focusX}
+                    onChange={(e) => updateFocus({ focusX: Number(e.target.value) })}
+                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] block">↕️ Vertical ({Math.round(normalized.focusY)}%)</label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={normalized.focusY}
+                    onChange={(e) => updateFocus({ focusY: Number(e.target.value) })}
+                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] block">🔍 Zoom ({(normalized.zoom * 100).toFixed(0)}%)</label>
+                  <input
+                    type="range"
+                    min={50}
+                    max={300}
+                    step={5}
+                    value={normalized.zoom * 100}
+                    onChange={(e) => updateFocus({ zoom: Number(e.target.value) / 100 })}
+                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
+                  />
+                  <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+                    <span>50%</span>
+                    <span>100%</span>
+                    <span>300%</span>
+                  </div>
+                </div>
+                <button 
+                  className="btn btn-primary w-full text-xs" 
+                  onClick={() => setShowFocusEditor(false)}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      {showLibrary && (
+        <MediaLibrary
+          mode="single"
+          onClose={() => setShowLibrary(false)}
+          onConfirm={handleConfirm}
+        />
+      )}
+    </div>
+  );
+}
+
+type GalleryImage = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
+
+function normalizeGalleryImage(item: GalleryImage): { url: string; focusX: number; focusY: number; zoom: number } {
+  if (typeof item === 'string') {
+    return { url: item, focusX: 50, focusY: 50, zoom: 1 };
+  }
+  return {
+    url: item.url || '',
+    focusX: clamp01(item.focusX),
+    focusY: clamp01(item.focusY),
+    zoom: typeof item.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1,
+  };
+}
+
+function ImagePickerList({ list, onChange }: { list: GalleryImage[], onChange: (urls: GalleryImage[]) => void }) {
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  
+  const normalized = (list || []).map(normalizeGalleryImage);
+  
+  const handleConfirm = useCallback((urls: string[]) => {
+    if (urls.length > 0) {
+      const newImages = urls.filter(Boolean).map(url => ({ url, focusX: 50, focusY: 50, zoom: 1 }));
+      onChange([...normalized, ...newImages]);
+    }
+    setShowLibrary(false);
+  }, [normalized, onChange]);
+
+  function rm(i: number) {
+    const copy = [...normalized];
+    copy.splice(i, 1);
+    onChange(copy);
+  }
+  
+  function updateImage(i: number, patch: Partial<{ focusX: number; focusY: number; zoom: number }>) {
+    const copy = [...normalized];
+    copy[i] = {
+      ...copy[i],
+      focusX: clamp01(patch.focusX, copy[i].focusX),
+      focusY: clamp01(patch.focusY, copy[i].focusY),
+      zoom: typeof patch.zoom === 'number' ? Math.min(3, Math.max(0.5, patch.zoom)) : copy[i].zoom,
+    };
+    onChange(copy);
   }
 
   return (
     <div>
       <div className="flex flex-wrap gap-3 mt-2">
-        {(list||[]).map((src:string, i:number)=>(
-          <div key={i} className="relative">
-            <img src={src} alt="" className="w-28 h-28 object-cover rounded-lg border" />
-            <button className="btn absolute top-1 right-1 text-xs" onClick={()=>rm(i)}>✕</button>
+        {normalized.map((img, i) => (
+          <div key={i} className="relative group">
+            <div className="w-28 h-28 overflow-hidden rounded-lg border bg-gray-900">
+              <img 
+                src={img.url} 
+                alt="" 
+                className="w-full h-full object-cover" 
+                style={{ 
+                  objectPosition: `${img.focusX}% ${img.focusY}%`,
+                  transform: `scale(${img.zoom})`
+                }}
+              />
+              {/* Focus point indicator */}
+              <div 
+                className="absolute w-3 h-3 rounded-full border-2 border-red-500 bg-red-500/50 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ left: `${img.focusX}%`, top: `${img.focusY}%` }}
+              />
+            </div>
+            <button 
+              className="btn absolute top-1 right-1 text-xs bg-red-500 text-white" 
+              onClick={() => rm(i)}
+            >
+              ✕
+            </button>
+            <button
+              className="btn absolute bottom-1 left-1 text-xs bg-blue-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => setEditingIndex(editingIndex === i ? null : i)}
+            >
+              🎯
+            </button>
+            {editingIndex === i && (
+              <div className="absolute top-full left-0 mt-2 p-3 bg-white border rounded-lg shadow-lg z-10 w-64">
+                <div className="text-xs font-semibold mb-2">Focus Point & Zoom</div>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-[10px] block">↔️ Horizontal ({Math.round(img.focusX)}%)</label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={img.focusX}
+                      onChange={(e) => updateImage(i, { focusX: Number(e.target.value) })}
+                      className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] block">↕️ Vertical ({Math.round(img.focusY)}%)</label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={img.focusY}
+                      onChange={(e) => updateImage(i, { focusY: Number(e.target.value) })}
+                      className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] block">🔍 Zoom ({(img.zoom * 100).toFixed(0)}%)</label>
+                    <input
+                      type="range"
+                      min={50}
+                      max={300}
+                      step={5}
+                      value={img.zoom * 100}
+                      onChange={(e) => updateImage(i, { zoom: Number(e.target.value) / 100 })}
+                      className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
+                    />
+                    <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+                      <span>50%</span>
+                      <span>100%</span>
+                      <span>300%</span>
+                    </div>
+                  </div>
+                  <button 
+                    className="btn btn-primary w-full text-xs" 
+                    onClick={() => setEditingIndex(null)}
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
       <button className="btn mt-2" onClick={() => setShowLibrary(true)}>Add Image</button>
+      <p className="text-xs text-gray-600 mt-1">🎯 Hover over images and click the target icon to adjust focus point</p>
       {showLibrary && (
         <MediaLibrary
           mode="multiple"
@@ -1337,6 +1582,15 @@ function WeddingLiveEditor({ section, onChange }: { section: any; onChange: (val
 function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list: HeroImage[]) => void }) {
   const heroImages = normalizeHeroImages(list);
   const [showLibrary, setShowLibrary] = useState(false);
+  
+  function onDragEnd(e: any) {
+    const { active, over } = e;
+    if (active?.id !== over?.id) {
+      const oldIndex = heroImages.findIndex((_, i) => i.toString() === active.id);
+      const newIndex = heroImages.findIndex((_, i) => i.toString() === over.id);
+      onChange(arrayMove(heroImages, oldIndex, newIndex));
+    }
+  }
   const handleLibraryConfirm = useCallback((urls: string[]) => {
     if (!urls.length) {
       setShowLibrary(false);
@@ -1345,7 +1599,7 @@ function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list:
     const next = [...(heroImages || [])];
     urls.filter(Boolean).forEach((url) => {
       if (!url) return;
-      next.push({ url, focusX: 50, focusY: 50 });
+      next.push({ url, focusX: 50, focusY: 50, zoom: 1 });
     });
     onChange(next);
     setShowLibrary(false);
@@ -1364,7 +1618,7 @@ function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list:
       alert('Upload failed');
       return;
     }
-    onChange([...(heroImages || []), { url: j.url, focusX: 50, focusY: 50 }]);
+    onChange([...(heroImages || []), { url: j.url, focusX: 50, focusY: 50, zoom: 1 }]);
   }
 
   function updateImage(index: number, patch: Partial<HeroImage>) {
@@ -1430,117 +1684,27 @@ function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list:
           <p><span className="font-semibold">📱 Mobile:</span> Text moves <strong>above or below</strong> faces (vertical only)</p>
           <p><span className="font-semibold">💻 Desktop:</span> Text moves to <strong>corners, sides, or edges</strong> (full 2D positioning)</p>
           <p className="text-blue-600 mt-2 pt-2 border-t border-blue-200">Adjust the sliders below to mark where faces are in each photo. The text will intelligently avoid those areas on both mobile and desktop!</p>
+          <p className="text-purple-700 font-semibold mt-2 pt-2 border-t border-blue-200">☰ Drag images to reorder them!</p>
         </div>
       </div>
-      <div className="flex flex-wrap gap-4">
-        {heroImages.map((img, i) => (
-          <div key={img.url + i} className="border rounded-lg p-3 bg-white/80 w-full md:w-64">
-            <div className="relative w-full h-36 overflow-hidden rounded-lg border bg-gray-900">
-              <img
-                src={img.url}
-                alt="Hero"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ objectPosition: `${img.focusX}% ${img.focusY}%` }}
-              />
-              {/* Focus point indicator */}
-              <div 
-                className="absolute w-6 h-6 rounded-full border-4 border-red-500 bg-red-500/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
-                style={{ left: `${img.focusX}%`, top: `${img.focusY}%` }}
-              >
-                <div className="absolute inset-0 rounded-full border-2 border-white animate-ping" />
-              </div>
-              {/* Text position preview - Desktop */}
-              <div className="hidden sm:block absolute inset-0 pointer-events-none">
-                {(() => {
-                  const { desktop } = getTextPositionLabel(img.focusX, img.focusY);
-                  const positionClass = desktop.includes('TOP') ? 'top-2' : desktop.includes('BOTTOM') ? 'bottom-2' : 'top-1/2 -translate-y-1/2';
-                  const horizontalClass = desktop.includes('LEFT') ? 'left-2' : desktop.includes('RIGHT') ? 'right-2' : 'left-1/2 -translate-x-1/2';
-                  return (
-                    <div className={`absolute ${positionClass} ${horizontalClass} bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-gray-700 shadow-lg border border-gray-300 transform`}>
-                      💻 TEXT
-                    </div>
-                  );
-                })()}
-              </div>
-              {/* Text position preview - Mobile */}
-              <div className="sm:hidden absolute inset-0 pointer-events-none">
-                {(() => {
-                  const { mobile } = getTextPositionLabel(img.focusX, img.focusY);
-                  const positionClass = mobile === 'TOP' ? 'top-2' : 'bottom-2';
-                  return (
-                    <div className={`absolute ${positionClass} left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-gray-700 shadow-lg border border-gray-300`}>
-                      📱 TEXT
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-            {/* Position indicator */}
-            <div className={`mt-2 px-2 py-1.5 rounded-lg text-[11px] font-semibold border ${getTextPositionColor(img.focusX, img.focusY)}`}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1">
-                  <span className="text-[9px] opacity-60">📱</span>
-                  {getTextPositionLabel(img.focusX, img.focusY).mobile}
-                </span>
-                <span className="w-px h-3 bg-current opacity-20" />
-                <span className="flex items-center gap-1">
-                  <span className="text-[9px] opacity-60">💻</span>
-                  {getTextPositionLabel(img.focusX, img.focusY).desktop}
-                </span>
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              <div>
-                <label className="text-xs font-semibold block text-gray-700">
-                  ↔️ Horizontal Focus ({Math.round(img.focusX)}%)
-                  <span className="text-[10px] font-normal ml-1 text-gray-500">• Where are faces horizontally?</span>
-                </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={img.focusX}
-                  onChange={(e) => updateImage(i, { focusX: Number(e.target.value) })}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
-                <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
-                  <span>Left</span>
-                  <span>Center</span>
-                  <span>Right</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold block text-gray-700">
-                  ↕️ Vertical Focus ({Math.round(img.focusY)}%)
-                  <span className="text-[10px] font-normal ml-1 text-gray-500">• Where are faces vertically?</span>
-                </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={img.focusY}
-                  onChange={(e) => updateImage(i, { focusY: Number(e.target.value) })}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                />
-                <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
-                  <span>Top</span>
-                  <span>Middle</span>
-                  <span>Bottom</span>
-                </div>
-              </div>
-              <input
-                className="border rounded p-2 w-full text-sm"
-                value={img.url}
-                onChange={(e) => updateImage(i, { url: e.target.value })}
-                placeholder="Image URL"
-              />
-              <button className="btn w-full" onClick={() => remove(i)}>
-                Remove
-              </button>
-            </div>
+      <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <SortableContext items={heroImages.map((_, i) => i.toString())} strategy={verticalListSortingStrategy}>
+          <div className="flex flex-wrap gap-4">
+            {heroImages.map((img, i) => (
+            <SortableHeroImage
+              key={img.url + i}
+              id={i.toString()}
+              img={img}
+              index={i}
+              onUpdate={(patch) => updateImage(i, patch)}
+              onRemove={() => remove(i)}
+              getTextPositionLabel={getTextPositionLabel}
+              getTextPositionColor={getTextPositionColor}
+            />
+          ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
       <div className="flex flex-wrap gap-3">
         <button className="btn" type="button" onClick={() => setShowLibrary(true)}>
           Choose from library
@@ -1548,20 +1712,18 @@ function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list:
         <label className="btn cursor-pointer" htmlFor="hero-upload-input">
           Upload new image
         </label>
+        <input
+          id="hero-upload-input"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) upload(file);
+            e.target.value = '';
+          }}
+        />
       </div>
-      <input
-        id="hero-upload-input"
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const input = e.target;
-          const f = input.files?.[0];
-          if (f) upload(f);
-          // reset so selecting same file twice still fires change
-          input.value = '';
-        }}
-        className="hidden"
-      />
       {showLibrary && (
         <MediaLibrary
           mode="multiple"
@@ -1569,6 +1731,152 @@ function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list:
           onConfirm={handleLibraryConfirm}
         />
       )}
+    </div>
+  );
+}
+
+function SortableHeroImage({ id, img, index, onUpdate, onRemove, getTextPositionLabel, getTextPositionColor }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  
+  return (
+    <div ref={setNodeRef} style={style} className="border rounded-lg p-3 bg-white/80 w-full md:w-64">
+      <div className="flex items-center justify-between mb-2">
+        <div {...attributes} {...listeners} className="cursor-move p-2 hover:bg-gray-100 rounded" title="Drag to reorder">
+          ☰
+        </div>
+        <span className="text-xs font-semibold text-gray-600">Image #{index + 1}</span>
+      </div>
+      <div className="relative w-full h-36 overflow-hidden rounded-lg border bg-gray-900">
+        <img
+          src={img.url}
+          alt="Hero"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ 
+            objectPosition: `${img.focusX}% ${img.focusY}%`,
+            transform: `scale(${img.zoom})`
+          }}
+        />
+        {/* Focus point indicator */}
+        <div 
+          className="absolute w-6 h-6 rounded-full border-4 border-red-500 bg-red-500/30 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
+          style={{ left: `${img.focusX}%`, top: `${img.focusY}%` }}
+        >
+          <div className="absolute inset-0 rounded-full border-2 border-white animate-ping" />
+        </div>
+        {/* Text position preview - Desktop */}
+        <div className="hidden sm:block absolute inset-0 pointer-events-none">
+          {(() => {
+            const { desktop } = getTextPositionLabel(img.focusX, img.focusY);
+            const positionClass = desktop.includes('TOP') ? 'top-2' : desktop.includes('BOTTOM') ? 'bottom-2' : 'top-1/2 -translate-y-1/2';
+            const horizontalClass = desktop.includes('LEFT') ? 'left-2' : desktop.includes('RIGHT') ? 'right-2' : 'left-1/2 -translate-x-1/2';
+            return (
+              <div className={`absolute ${positionClass} ${horizontalClass} bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-gray-700 shadow-lg border border-gray-300 transform`}>
+                💻 TEXT
+              </div>
+            );
+          })()}
+        </div>
+        {/* Text position preview - Mobile */}
+        <div className="sm:hidden absolute inset-0 pointer-events-none">
+          {(() => {
+            const { mobile } = getTextPositionLabel(img.focusX, img.focusY);
+            const positionClass = mobile === 'TOP' ? 'top-2' : 'bottom-2';
+            return (
+              <div className={`absolute ${positionClass} left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[8px] font-bold text-gray-700 shadow-lg border border-gray-300`}>
+                📱 TEXT
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+      {/* Position indicator */}
+      <div className={`mt-2 px-2 py-1.5 rounded-lg text-[11px] font-semibold border ${getTextPositionColor(img.focusX, img.focusY)}`}>
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1">
+            <span className="text-[9px] opacity-60">📱</span>
+            {getTextPositionLabel(img.focusX, img.focusY).mobile}
+          </span>
+          <span className="w-px h-3 bg-current opacity-20" />
+          <span className="flex items-center gap-1">
+            <span className="text-[9px] opacity-60">💻</span>
+            {getTextPositionLabel(img.focusX, img.focusY).desktop}
+          </span>
+        </div>
+      </div>
+      <div className="mt-3 space-y-2">
+        <div>
+          <label className="text-xs font-semibold block text-gray-700">
+            ↔️ Horizontal Focus ({Math.round(img.focusX)}%)
+            <span className="text-[10px] font-normal ml-1 text-gray-500">• Where are faces horizontally?</span>
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={img.focusX}
+            onChange={(e) => onUpdate({ focusX: Number(e.target.value) })}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+          />
+          <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+            <span>Left</span>
+            <span>Center</span>
+            <span>Right</span>
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-semibold block text-gray-700">
+            ↕️ Vertical Focus ({Math.round(img.focusY)}%)
+            <span className="text-[10px] font-normal ml-1 text-gray-500">• Where are faces vertically?</span>
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={img.focusY}
+            onChange={(e) => onUpdate({ focusY: Number(e.target.value) })}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+          />
+          <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+            <span>Top</span>
+            <span>Middle</span>
+            <span>Bottom</span>
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-semibold block text-gray-700">
+            🔍 Zoom ({(img.zoom * 100).toFixed(0)}%)
+            <span className="text-[10px] font-normal ml-1 text-gray-500">• Zoom in or out</span>
+          </label>
+          <input
+            type="range"
+            min={50}
+            max={300}
+            step={5}
+            value={img.zoom * 100}
+            onChange={(e) => onUpdate({ zoom: Number(e.target.value) / 100 })}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
+          />
+          <div className="flex justify-between text-[9px] text-gray-400 mt-0.5">
+            <span>50% (Zoom Out)</span>
+            <span>100%</span>
+            <span>300% (Zoom In)</span>
+          </div>
+        </div>
+        <input
+          className="border rounded p-2 w-full text-sm"
+          value={img.url}
+          onChange={(e) => onUpdate({ url: e.target.value })}
+          placeholder="Image URL"
+        />
+        <button className="btn w-full" onClick={onRemove}>
+          Remove
+        </button>
+      </div>
     </div>
   );
 }

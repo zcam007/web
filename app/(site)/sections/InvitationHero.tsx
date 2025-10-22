@@ -1,6 +1,23 @@
 import { ScrollAnimation, FadeIn, ScaleIn } from '../components/AnimationWrappers';
 
+type ImageWithFocus = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
+
+function normalizeImage(item: ImageWithFocus): { url: string; focusX: number; focusY: number; zoom: number } {
+  if (!item) return { url: '', focusX: 50, focusY: 50, zoom: 1 };
+  if (typeof item === 'string') {
+    return { url: item, focusX: 50, focusY: 50, zoom: 1 };
+  }
+  return {
+    url: item.url || '',
+    focusX: typeof item.focusX === 'number' ? Math.min(100, Math.max(0, item.focusX)) : 50,
+    focusY: typeof item.focusY === 'number' ? Math.min(100, Math.max(0, item.focusY)) : 50,
+    zoom: typeof item.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1,
+  };
+}
+
 export default function InvitationHero({ data }: { data: any }) {
+  const groomImage = normalizeImage(data.groomImage);
+  const brideImage = normalizeImage(data.brideImage);
   return (
     <section className="py-12 sm:py-16 lg:py-20 relative overflow-hidden" id="invitation-hero">
       {/* Decorative background pattern */}
@@ -23,11 +40,15 @@ export default function InvitationHero({ data }: { data: any }) {
             <ScaleIn delay={0.4}>
               <div className="relative group w-full flex justify-center">
                 <div className="w-36 h-36 sm:w-56 sm:h-56 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden shadow-2xl border-4 sm:border-6 md:border-8 border-white ring-2 sm:ring-3 md:ring-4 ring-blue-100 transition-all duration-500 group-hover:scale-105 group-hover:ring-blue-200">
-                  {data.groomImage ? (
+                  {groomImage.url ? (
                     <img 
-                      src={data.groomImage} 
+                      src={groomImage.url} 
                       alt={data.groomName || "Groom"} 
                       className="w-full h-full object-cover"
+                      style={{ 
+                        objectPosition: `${groomImage.focusX}% ${groomImage.focusY}%`,
+                        transform: `scale(${groomImage.zoom})`
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-200 to-indigo-200 flex items-center justify-center">
@@ -51,11 +72,15 @@ export default function InvitationHero({ data }: { data: any }) {
             <ScaleIn delay={0.6}>
               <div className="relative group w-full flex justify-center">
                 <div className="w-36 h-36 sm:w-56 sm:h-56 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden shadow-2xl border-4 sm:border-6 md:border-8 border-white ring-2 sm:ring-3 md:ring-4 ring-pink-100 transition-all duration-500 group-hover:scale-105 group-hover:ring-pink-200">
-                  {data.brideImage ? (
+                  {brideImage.url ? (
                     <img 
-                      src={data.brideImage} 
+                      src={brideImage.url} 
                       alt={data.brideName || "Bride"} 
                       className="w-full h-full object-cover"
+                      style={{ 
+                        objectPosition: `${brideImage.focusX}% ${brideImage.focusY}%`,
+                        transform: `scale(${brideImage.zoom})`
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-pink-200 to-red-200 flex items-center justify-center">

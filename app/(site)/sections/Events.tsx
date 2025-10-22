@@ -1,5 +1,20 @@
 import { ScrollAnimation, ScrollStagger, StaggerItem, HoverScale } from '../components/AnimationWrappers';
 
+type ImageWithFocus = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
+
+function normalizeImage(item: ImageWithFocus): { url: string; focusX: number; focusY: number; zoom: number } {
+  if (!item) return { url: '', focusX: 50, focusY: 50, zoom: 1 };
+  if (typeof item === 'string') {
+    return { url: item, focusX: 50, focusY: 50, zoom: 1 };
+  }
+  return {
+    url: item.url || '',
+    focusX: typeof item.focusX === 'number' ? Math.min(100, Math.max(0, item.focusX)) : 50,
+    focusY: typeof item.focusY === 'number' ? Math.min(100, Math.max(0, item.focusY)) : 50,
+    zoom: typeof item.zoom === 'number' ? Math.min(3, Math.max(0.5, item.zoom)) : 1,
+  };
+}
+
 export default function Events({ data }: { data: any }) {
   // Separate wedding events (Nov 24-26) from reception
   const weddingEvents = data.items?.filter((e: any) => 
@@ -57,16 +72,41 @@ export default function Events({ data }: { data: any }) {
                             <span className={`${isWeddingCeremony ? 'text-xl sm:text-2xl' : 'text-lg'}`}>{icons[i] || '🎉'}</span>
                           </div>
                         </div>
-                        {e.image && !isWeddingCeremony && (
-                          <div className="w-full h-28 sm:h-32 rounded-lg overflow-hidden shadow-md mb-3">
-                            <img src={e.image} alt={e.name} className="w-full h-full object-cover" />
-                          </div>
-                        )}
-                        {isWeddingCeremony && e.image && (
-                          <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-lg overflow-hidden shadow-md flex-shrink-0">
-                            <img src={e.image} alt={e.name} className="w-full h-full object-cover" />
-                          </div>
-                        )}
+                        {e.image && !isWeddingCeremony && (() => {
+                          const img = normalizeImage(e.image);
+                          return (
+                            <div className="w-full h-28 sm:h-32 rounded-lg overflow-hidden shadow-md mb-3">
+                              <img 
+                                src={img.url} 
+                                alt={e.name} 
+                                className="w-full h-full object-cover" 
+                                style={{ 
+                                  objectPosition: `${img.focusX}% ${img.focusY}%`,
+                                  transform: `scale(${img.zoom})`
+                                }}
+                              />
+                                  transform: `scale(${img.zoom})`
+                                }}
+                              />
+                            </div>
+                          );
+                        })()}
+                        {isWeddingCeremony && e.image && (() => {
+                          const img = normalizeImage(e.image);
+                          return (
+                            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-lg overflow-hidden shadow-md flex-shrink-0">
+                              <img 
+                                src={img.url} 
+                                alt={e.name} 
+                                className="w-full h-full object-cover" 
+                                style={{ 
+                                  objectPosition: `${img.focusX}% ${img.focusY}%`,
+                                  transform: `scale(${img.zoom})`
+                                }}
+                              />
+                            </div>
+                          );
+                        })()}
                         <div className={`${isWeddingCeremony ? 'text-left flex-1 min-w-0' : 'text-center'}`}>
                           <h4 className={`${isWeddingCeremony ? 'text-base sm:text-lg md:text-xl' : 'text-base sm:text-lg'} font-bold text-gray-800 mb-1 sm:mb-2`}>
                             {e.name}
@@ -110,16 +150,23 @@ export default function Events({ data }: { data: any }) {
               <HoverScale scale={1.02}>
                 <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                   {/* Reception Image */}
-                  {receptionEvent.image ? (
-                    <div className="relative h-[400px] sm:h-[500px]">
-                      <img 
-                        src={receptionEvent.image} 
-                        alt="Reception" 
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                    </div>
-                  ) : (
+                  {receptionEvent.image ? (() => {
+                    const img = normalizeImage(receptionEvent.image);
+                    return (
+                      <div className="relative h-[400px] sm:h-[500px]">
+                        <img 
+                          src={img.url} 
+                          alt="Reception" 
+                          className="w-full h-full object-cover"
+                          style={{ 
+                            objectPosition: `${img.focusX}% ${img.focusY}%`,
+                            transform: `scale(${img.zoom})`
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                      </div>
+                    );
+                  })() : (
                     <div className="relative h-[400px] sm:h-[500px] bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 flex items-center justify-center">
                       <span className="text-7xl sm:text-9xl opacity-30">🥂</span>
                     </div>
