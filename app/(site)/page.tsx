@@ -8,6 +8,7 @@ import RSVP from './sections/RSVP';
 import Map from './sections/Map';
 import Invitation from './sections/Invitation';
 import InvitationHero from './sections/InvitationHero';
+import WeddingLive from './sections/WeddingLive';
 import Script from 'next/script'
 
 export default async function Page() {
@@ -29,6 +30,7 @@ export default async function Page() {
         if (sec.type === 'map') return <Map key={i} data={sec} />;
         if (sec.type === 'invitation') return <Invitation key={i} data={sec} />;
         if (sec.type === 'invitation-hero') return <InvitationHero key={i} data={sec} />;
+        if (sec.type === 'wedding-live') return <WeddingLive key={i} data={sec} />;
         return null;
       })}
       <footer className="container py-10 text-center relative">

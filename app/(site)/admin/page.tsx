@@ -461,6 +461,44 @@ export default function Admin() {
           ))}
         </SortableContext>
       </DndContext>
+      
+      {/* Add Section Button */}
+      <div className="mt-4">
+        <details className="border rounded-lg">
+          <summary className="btn btn-primary cursor-pointer list-none px-4 py-3 text-center">
+            + Add New Section
+          </summary>
+          <div className="p-4 bg-gray-50 space-y-2">
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'couple', heading: 'Our Story', visible: true}]});
+            }}>+ Couple Section</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'story', heading: 'Timeline', items: [], visible: true}]});
+            }}>+ Story/Timeline</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'events', heading: 'Events', items: [], visible: true}]});
+            }}>+ Events</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'gallery', heading: 'Gallery', images: [], mode: 'local', immich: {albums: [], limit: 60, randomize: true, hiddenAssets: []}, visible: true}]});
+            }}>+ Gallery</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'wedding-live', heading: 'Watch Live', mode: 'links', links: [], description: '', visible: true}]});
+            }}>+ Wedding Live Stream 🎬</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'rsvp', heading: 'RSVP', note: '', visible: true}]});
+            }}>+ RSVP</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'map', heading: 'Venue', embed: '', visible: true}]});
+            }}>+ Map/Venue</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'invitation', heading: 'You\'re Invited', visible: true}]});
+            }}>+ Invitation</button>
+            <button className="btn w-full text-left" onClick={() => {
+              setCfg({...cfg, sections: [...cfg.sections, {type: 'invitation-hero', hashtag: '#Wedding', visible: true}]});
+            }}>+ Invitation Hero</button>
+          </div>
+        </details>
+      </div>
     </div>
   );
 }
@@ -566,6 +604,9 @@ function SectionEditor({ section, onChange }: any) {
         <input className="border rounded p-2 w-full mt-2" placeholder="Date (e.g., 26th November 2025)" value={section.date||''} onChange={e=>onChange({...section, date: e.target.value})} />
       </div>
     );
+  }
+  if (section.type === 'wedding-live') {
+    return <WeddingLiveEditor section={section} onChange={onChange} />;
   }
   return <div>Unknown section</div>;
 }
@@ -1110,6 +1151,183 @@ function GalleryEditor({ section, onChange }: { section: any; onChange: (value: 
             list={gallery.images}
             onChange={(list) => update({ images: list })}
           />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WeddingLiveEditor({ section, onChange }: { section: any; onChange: (value: any) => void }) {
+  const mode = section.mode || 'links';
+  const links = section.links || [];
+  const [urlHelper, setUrlHelper] = useState('');
+  
+  // Convert regular YouTube/Facebook URLs to embed URLs
+  function convertToEmbedUrl(url: string): string {
+    if (!url) return url;
+    
+    // YouTube conversions
+    // youtube.com/watch?v=VIDEO_ID -> youtube.com/embed/VIDEO_ID
+    const youtubeWatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+    if (youtubeWatch && youtubeWatch[1]) {
+      return `https://www.youtube.com/embed/${youtubeWatch[1]}`;
+    }
+    
+    // youtube.com/live/VIDEO_ID -> youtube.com/embed/VIDEO_ID
+    const youtubeLive = url.match(/youtube\.com\/live\/([^&\s]+)/);
+    if (youtubeLive && youtubeLive[1]) {
+      return `https://www.youtube.com/embed/${youtubeLive[1]}`;
+    }
+    
+    // Facebook video URLs - extract video ID
+    const fbVideo = url.match(/facebook\.com\/.*\/videos\/(\d+)/);
+    if (fbVideo && fbVideo[1]) {
+      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}`;
+    }
+    
+    return url;
+  }
+  
+  function handleIframeUrlChange(url: string) {
+    const embedUrl = convertToEmbedUrl(url);
+    onChange({ ...section, iframeUrl: embedUrl });
+    
+    // Show helper message if URL was converted
+    if (embedUrl !== url && embedUrl !== '') {
+      setUrlHelper('✅ URL auto-converted to embed format!');
+      setTimeout(() => setUrlHelper(''), 3000);
+    } else if (url && !url.includes('embed') && !url.includes('plugins')) {
+      setUrlHelper('⚠️ Make sure this is an embed URL, not a regular page URL');
+    } else {
+      setUrlHelper('');
+    }
+  }
+  
+  function updateLink(index: number, field: string, value: string) {
+    const updated = [...links];
+    updated[index] = { ...updated[index], [field]: value };
+    onChange({ ...section, links: updated });
+  }
+  
+  function addLink() {
+    onChange({ ...section, links: [...links, { label: '', url: '', icon: '🎬' }] });
+  }
+  
+  function removeLink(index: number) {
+    const updated = [...links];
+    updated.splice(index, 1);
+    onChange({ ...section, links: updated });
+  }
+  
+  return (
+    <div>
+      <div className="text-lg font-semibold">Wedding Live Stream</div>
+      
+      <input 
+        className="border rounded p-2 w-full mt-2" 
+        placeholder="Section Heading (e.g., Watch Live)" 
+        value={section.heading || ''} 
+        onChange={e => onChange({ ...section, heading: e.target.value })} 
+      />
+      
+      <textarea 
+        className="border rounded p-2 w-full mt-2" 
+        rows={2}
+        placeholder="Description (optional)" 
+        value={section.description || ''} 
+        onChange={e => onChange({ ...section, description: e.target.value })} 
+      />
+      
+      <div className="mt-4">
+        <label className="block text-sm font-semibold mb-2">Display Mode</label>
+        <select 
+          className="border rounded p-2 w-full" 
+          value={mode}
+          onChange={e => onChange({ ...section, mode: e.target.value })}
+        >
+          <option value="links">Multiple Links (YouTube, Facebook, Instagram, etc.)</option>
+          <option value="iframe">Single Embedded Stream (iframe)</option>
+        </select>
+      </div>
+      
+      {mode === 'iframe' ? (
+        <div className="mt-4">
+          <label className="block text-sm font-semibold mb-2">Iframe Embed URL</label>
+          <input 
+            className="border rounded p-2 w-full" 
+            placeholder="Paste any YouTube/Facebook URL - I'll convert it for you!" 
+            value={section.iframeUrl || ''} 
+            onChange={e => handleIframeUrlChange(e.target.value)}
+            onBlur={e => handleIframeUrlChange(e.target.value)}
+          />
+          {urlHelper && (
+            <p className={`text-xs mt-1 ${urlHelper.includes('✅') ? 'text-green-600' : 'text-amber-600'}`}>
+              {urlHelper}
+            </p>
+          )}
+          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs space-y-1">
+            <p className="font-semibold text-blue-900">💡 Smart URL Conversion:</p>
+            <p className="text-blue-800">• Paste ANY YouTube URL (I'll auto-convert to embed format)</p>
+            <p className="text-blue-800">• Works with: youtube.com/watch, youtu.be, youtube.com/live</p>
+            <p className="text-blue-800">• Facebook video URLs also supported</p>
+          </div>
+          <div className="mt-2 space-y-1 text-xs text-gray-600">
+            <p><strong>Examples that work:</strong></p>
+            <p>• https://youtube.com/watch?v=dQw4w9WgXcQ</p>
+            <p>• https://youtu.be/dQw4w9WgXcQ</p>
+            <p>• https://youtube.com/live/dQw4w9WgXcQ</p>
+            <p>• https://www.youtube.com/embed/dQw4w9WgXcQ (already in embed format)</p>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <label className="block text-sm font-semibold mb-2">Live Stream Links</label>
+          <div className="space-y-3">
+            {links.map((link: any, index: number) => (
+              <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-semibold text-sm">Link {index + 1}</span>
+                  <button 
+                    className="btn border-red-300 bg-red-50 text-red-600 text-sm" 
+                    onClick={() => removeLink(index)}
+                  >
+                    Delete
+                  </button>
+                </div>
+                <div className="grid md:grid-cols-3 gap-2">
+                  <input 
+                    className="border rounded p-2" 
+                    placeholder="Platform (e.g., YouTube)" 
+                    value={link.label || ''} 
+                    onChange={e => updateLink(index, 'label', e.target.value)} 
+                  />
+                  <input 
+                    className="border rounded p-2 md:col-span-2" 
+                    placeholder="Full URL (any format works - e.g., https://youtube.com/watch?v=...)" 
+                    value={link.url || ''} 
+                    onChange={e => updateLink(index, 'url', e.target.value)} 
+                  />
+                </div>
+                <div className="mt-2">
+                  <label className="block text-xs mb-1">Icon (emoji)</label>
+                  <input 
+                    className="border rounded p-2 w-20" 
+                    placeholder="🎬" 
+                    value={link.icon || ''} 
+                    onChange={e => updateLink(index, 'icon', e.target.value)} 
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="btn btn-primary mt-3" onClick={addLink}>
+            + Add Live Stream Link
+          </button>
+          {links.length === 0 && (
+            <p className="text-sm text-gray-600 mt-2">
+              Add links to YouTube, Facebook Live, Instagram Live, or any streaming platform
+            </p>
+          )}
         </div>
       )}
     </div>

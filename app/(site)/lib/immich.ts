@@ -99,7 +99,7 @@ async function fetchSharedLinkDetail(link: SharedLinkDto): Promise<number> {
   // Go directly to the album assets endpoint since we have the albumId
   if (albumId) {
     try {
-      console.log('[Immich] Fetching album assets directly for albumId:', albumId);
+      // console.log('[Immich] Fetching album assets directly for albumId:', albumId);
       const { total } = await fetchAlbumAssets(albumId, 1);
       console.log('[Immich] Album assets total:', total);
       return total;
@@ -112,9 +112,9 @@ async function fetchSharedLinkDetail(link: SharedLinkDto): Promise<number> {
   // If no albumId, try the shared link detail endpoint (though it may 403)
   try {
     const query = link.key ? `?key=${encodeURIComponent(link.key)}` : '';
-    console.log('[Immich] Trying shared link detail for id:', link.id, 'key:', link.key);
+    // console.log('[Immich] Trying shared link detail for id:', link.id, 'key:', link.key);
     const detail = await immichFetch<SharedLinkDetailDto>(`/api/shared-links/${link.id}${query}`);
-    console.log('[Immich] Shared link detail response:', JSON.stringify(detail, null, 2));
+    // console.log('[Immich] Shared link detail response:', JSON.stringify(detail, null, 2));
     if (typeof detail.assetCount === 'number' && detail.assetCount > 0) {
       return detail.assetCount;
     }
@@ -229,7 +229,7 @@ async function fetchAlbumAssets(albumId: string, take: number) {
   console.log('[Immich] Fetching album info for:', albumId);
   const response = await immichRequest(`/api/albums/${albumId}`);
   const albumData = await response.json();
-  console.log('[Immich] Album response:', JSON.stringify(albumData, null, 2));
+  // console.log('[Immich] Album response:', JSON.stringify(albumData, null, 2));
   
   // Extract assets from the album response
   const payload = (albumData.assets || []) as AlbumAssetDto[];
@@ -249,7 +249,7 @@ async function fetchAlbumAssets(albumId: string, take: number) {
 
 export async function listImmichSharedAlbums(): Promise<ImmichAlbumSummary[]> {
   const payload = await immichFetch<SharedLinkDto[]>(`/api/shared-links`);
-  console.log('[Immich] Raw shared-links response:', JSON.stringify(payload, null, 2));
+  // console.log('[Immich] Raw shared-links response:', JSON.stringify(payload, null, 2));
   const albumLinks = payload.filter((link) => link.type === 'ALBUM');
 
   const counts = await Promise.all(
@@ -283,9 +283,9 @@ export async function fetchImmichAlbumAssetPage(
 
   let summary: ImmichAlbumSummary | undefined;
   if (typeof reference === 'string') {
-    console.log('[Immich] Looking up album with reference:', reference);
+    // console.log('[Immich] Looking up album with reference:', reference);
     const albums = await listImmichSharedAlbums().catch(() => []);
-    console.log('[Immich] Available albums:', albums.map(a => ({ id: a.id, shareId: a.shareId, albumId: a.albumId, name: a.name })));
+    // console.log('[Immich] Available albums:', albums.map(a => ({ id: a.id, shareId: a.shareId, albumId: a.albumId, name: a.name })));
     summary = albums.find((album) => [album.id, album.shareId, album.shareKey, album.albumId].filter(Boolean).includes(reference));
     console.log('[Immich] Found summary:', summary ? summary.name : 'NOT FOUND');
     // If given a raw key, attempt using it directly (key only)
@@ -305,7 +305,7 @@ export async function fetchImmichAlbumAssetPage(
     // Primary attempt: albumId direct (most reliable with API key authentication)
     if (summary.albumId) {
       try {
-        console.log('[Immich] Fetching assets via albumId:', summary.albumId);
+        // console.log('[Immich] Fetching assets via albumId:', summary.albumId);
         const { assets, total } = await fetchAlbumAssets(summary.albumId, limit);
         if (assets.length || total) {
           return { assets: assets.slice(0, limit), total: total || assets.length };
@@ -317,7 +317,7 @@ export async function fetchImmichAlbumAssetPage(
     // Secondary attempt: shareId + shareKey (may fail with API key auth)
     if (summary.shareId) {
       try {
-        console.log('[Immich] Trying shared link assets via shareId:', summary.shareId);
+        // console.log('[Immich] Trying shared link assets via shareId:', summary.shareId);
         const { assets, total } = await fetchSharedLinkAssets(summary.shareId, summary.shareKey, limit);
         if (assets.length || total) {
           return { assets: assets.slice(0, limit), total: total || assets.length };
@@ -344,11 +344,11 @@ export async function fetchImmichAlbumAssets(
   reference: string | ImmichAlbumSummary,
   take = 60
 ): Promise<ImmichAsset[]> {
-  console.log('[Immich] fetchImmichAlbumAssets called with reference:', typeof reference === 'string' ? reference : reference.name);
+  // console.log('[Immich] fetchImmichAlbumAssets called with reference:', typeof reference === 'string' ? reference : reference.name);
   const { assets } = await fetchImmichAlbumAssetPage(reference, take);
-  console.log('[Immich] fetchImmichAlbumAssets returning', assets.length, 'assets');
+  // console.log('[Immich] fetchImmichAlbumAssets returning', assets.length, 'assets');
   if (assets.length > 0) {
-    console.log('[Immich] First asset:', JSON.stringify(assets[0], null, 2));
+    // console.log('[Immich] First asset:', JSON.stringify(assets[0], null, 2));
   }
   return assets;
 }
