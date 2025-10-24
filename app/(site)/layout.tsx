@@ -4,12 +4,13 @@ import type { ReactNode } from 'react';
 export const metadata = {
   title: '#Mocha - Wedding ',
   description: 'A modern, elegant wedding website',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

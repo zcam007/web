@@ -32,79 +32,96 @@ export interface ParsedCalendarEvent {
  * - "6:00 PM" (12-hour legacy)
  * - "6:00 PM - 8:00 PM" (with end time)
  */
-function parseEventTime(timeStr: string, eventDate: string, targetTimezone: string = 'Asia/Kolkata'): { start: Date; end: Date } {
-} {
+function parseEventTime(
+  timeStr: string,
+  eventDate: string,
+  targetTimezone: string = 'Asia/Kolkata'
+): { start: Date; end: Date } {
   const [datePart] = eventDate.split('T');
   const [year, month, day] = datePart.split('-').map(Number);
-  
-  // Extract start time
-  const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-  if (!timeMatch) {
-    // Default to noon if we can't parse
+
+  const [startPart, endPart] = timeStr.split('-').map((part) => part?.trim() ?? '');
+
+  const parseTimeComponent = (component: string): { hours: number; minutes: number } | null => {
+    if (!component) return null;
+    const twelveHour = component.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (twelveHour) {
+      let hours = parseInt(twelveHour[1], 10);
+      const minutes = parseInt(twelveHour[2], 10);
+      const meridiem = twelveHour[3].toUpperCase();
+      if (meridiem === 'PM' && hours !== 12) hours += 12;
+      if (meridiem === 'AM' && hours === 12) hours = 0;
+      return { hours, minutes };
+    }
+
+    const twentyFourHour = component.match(/(\d{1,2}):(\d{2})/);
+    if (twentyFourHour) {
+      const hours = parseInt(twentyFourHour[1], 10);
+      const minutes = parseInt(twentyFourHour[2], 10);
+      if (hours >= 0 && hours < 24) {
+        return { hours, minutes };
+      }
+    }
+    return null;
+  };
+
+  const startTime = parseTimeComponent(startPart);
+  if (!startTime) {
     const defaultStart = createDateInTimezone(year, month, day, 12, 0, targetTimezone);
     const defaultEnd = createDateInTimezone(year, month, day, 14, 0, targetTimezone);
-    return { start: defaultStart, end: defaultEnd 
-};
-  
-}
-  
-  let hours = parseInt(timeMatch[1]);
-  const minutes = parseInt(timeMatch[2]);
-  const meridiem = timeMatch[3].toUpperCase();
-  
-  // Convert to 24-hour format
-  if (meridiem === 'PM' && hours !== 12) hours += 12;
-  if (meridiem === 'AM' && hours === 12) hours = 0;
-  
-  const startDate = createDateInTimezone(year, month, day, hours, minutes, targetTimezone);
-  
-  // Check if there's an end time
-  const endTimeMatch = timeStr.match(/-(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-  let endDate: Date;
-  
-  if (endTimeMatch) {
-    let endHours = parseInt(endTimeMatch[1]);
-    const endMinutes = parseInt(endTimeMatch[2]);
-    const endMeridiem = endTimeMatch[3].toUpperCase();
-    
-    if (endMeridiem === 'PM' && endHours !== 12) endHours += 12;
-    if (endMeridiem === 'AM' && endHours === 12) endHours = 0;
-    
-    endDate = createDateInTimezone(year, month, day, endHours, endMinutes, targetTimezone);
-  
-} else {
-    // Default to 2 hours duration
-    endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-  
-}
-  
-  return { start: startDate, end: endDate 
-};
+    return { start: defaultStart, end: defaultEnd };
+  }
 
+  const startDate = createDateInTimezone(
+    year,
+    month,
+    day,
+    startTime.hours,
+    startTime.minutes,
+    targetTimezone
+  );
+
+  const endTime = parseTimeComponent(endPart);
+  let endDate: Date;
+
+  if (endTime) {
+    endDate = createDateInTimezone(
+      year,
+      month,
+      day,
+      endTime.hours,
+      endTime.minutes,
+      targetTimezone
+    );
+    // Handle cases where end time crosses midnight implicitly
+    if (endDate <= startDate) {
+      endDate = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
+    }
+  } else {
+    // Default to 2 hours duration when no explicit end time
+    endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+  }
+
+  return { start: startDate, end: endDate };
 }
 
 /**
  * Create a Date object in a specific timezone
  * Since the times on the website are in IST, we need to convert them properly
  */
-function createDateInTimezone(year: number, month: number, day: number, hours: number, minutes: number, timezone: string): Date {
-  // Create a date string in ISO format for the IST timezone
-  // Times from config are in IST, so we first create them as IST
-  const istDateStr = `${year
-}-${String(month).padStart(2, '0')
-}-${String(day).padStart(2, '0')
-}T${String(hours).padStart(2, '0')
-}:${String(minutes).padStart(2, '0')
-}:00`;
-  
-  // Parse as IST (UTC+5:30)
-  // IST is UTC+5:30, so we need to subtract 5.5 hours to get UTC
-  const date = new Date(istDateStr);
-  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
-  const utcTime = date.getTime() - istOffset;
-  
-  return new Date(utcTime);
-
+function createDateInTimezone(
+  year: number,
+  month: number,
+  day: number,
+  hours: number,
+  minutes: number,
+  timezone: string
+): Date {
+  const baseUtc = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+  const localeString = baseUtc.toLocaleString('en-US', { timeZone: timezone });
+  const tzDate = new Date(localeString);
+  const offset = baseUtc.getTime() - tzDate.getTime();
+  return new Date(baseUtc.getTime() - offset);
 }
 
 /**

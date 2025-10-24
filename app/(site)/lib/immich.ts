@@ -280,6 +280,7 @@ export async function fetchImmichAlbumAssetPage(
 ): Promise<{ assets: ImmichAsset[]; total: number }> {
   if (!reference) return { assets: [], total: 0 };
   const limit = Math.max(1, Math.min(500, take));
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   let summary: ImmichAlbumSummary | undefined;
   if (typeof reference === 'string') {
@@ -287,11 +288,12 @@ export async function fetchImmichAlbumAssetPage(
     const albums = await listImmichSharedAlbums().catch(() => []);
     // console.log('[Immich] Available albums:', albums.map(a => ({ id: a.id, shareId: a.shareId, albumId: a.albumId, name: a.name })));
     summary = albums.find((album) => [album.id, album.shareId, album.shareKey, album.albumId].filter(Boolean).includes(reference));
-    console.log('[Immich] Found summary:', summary ? summary.name : 'NOT FOUND');
+    // console.log('[Immich] Found summary:', summary ? summary.name : 'NOT FOUND');
     // If given a raw key, attempt using it directly (key only)
     if (!summary) {
       try {
-        const { assets, total } = await fetchSharedLinkAssets(reference, reference, limit);
+        const key = uuidPattern.test(reference) ? undefined : reference;
+        const { assets, total } = await fetchSharedLinkAssets(reference, key, limit);
         if (assets.length || total) return { assets: assets.slice(0, limit), total };
       } catch (_) {
         // ignore
