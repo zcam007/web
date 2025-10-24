@@ -106,8 +106,11 @@ function parseEventTime(
 }
 
 /**
- * Create a Date object in a specific timezone
- * Since the times on the website are in IST, we need to convert them properly
+ * Create a Date object from IST time and convert to UTC
+ * IST is UTC+5:30
+ * 
+ * Example: 9:15 AM IST on Nov 24, 2025
+ * Should become: 3:45 AM UTC on Nov 24, 2025
  */
 function createDateInTimezone(
   year: number,
@@ -117,11 +120,19 @@ function createDateInTimezone(
   minutes: number,
   timezone: string
 ): Date {
-  const baseUtc = new Date(Date.UTC(year, month - 1, day, hours, minutes));
-  const localeString = baseUtc.toLocaleString('en-US', { timeZone: timezone });
-  const tzDate = new Date(localeString);
-  const offset = baseUtc.getTime() - tzDate.getTime();
-  return new Date(baseUtc.getTime() - offset);
+  // The input time (hours, minutes) is in IST
+  // IST is UTC+5:30, meaning IST = UTC + 5.5 hours
+  // To convert IST to UTC: UTC = IST - 5.5 hours
+  
+  // Create UTC date by directly using Date.UTC()
+  // This ensures we're working in UTC, not local timezone
+  const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0, 0));
+  
+  // Now subtract 5.5 hours because the input was IST, not UTC
+  const istOffsetMs = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+  const correctedUtc = new Date(utcDate.getTime() - istOffsetMs);
+  
+  return correctedUtc;
 }
 
 /**
@@ -141,10 +152,17 @@ function formatICalDateTime(date: Date): string {
 
 /**
  * Generate the master UID for the wedding event series
- * ALL events use this same UID to be treated as one series
  */
 function getMasterEventId(): string {
   return 'chandu-mouni-wedding-2025@wedding.chandu.dev';
+}
+
+/**
+ * Generate unique UID for each event instance
+ */
+function generateEventId(eventIndex: number, eventStart: Date): string {
+  const timestamp = eventStart.getTime();
+  return `chandu-mouni-${timestamp}-${eventIndex}@wedding.chandu.dev`;
 }
 
 /**
@@ -181,12 +199,12 @@ export function parseCalendarEvent(event: CalendarEvent, defaultDate: string, ti
 /**
  * Generate a single .ics file content for an event
  */
-export function generateICS(event: ParsedCalendarEvent): string {
+export function generateICS(event: ParsedCalendarEvent, eventIndex: number = 0): string {
   const now = new Date();
   const dtstamp = formatICalDateTime(now);
   const dtstart = formatICalDateTime(event.start);
   const dtend = formatICalDateTime(event.end);
-  const uid = getMasterEventId();
+  const uid = getMasterEventId(); // Same UID for series
   
   // Escape special characters in text fields
   const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
@@ -238,19 +256,19 @@ X-WR-CALDESC:Wedding ceremonies and reception events. Delete any event to remove
 X-PUBLISHED-TTL:PT1H
 `;
   
-  events.forEach((event) => {
+  events.forEach((event, index) => {
     const dtstart = formatICalDateTime(event.start);
     const dtend = formatICalDateTime(event.end);
     
-    // All events use the SAME UID - this is the key for series behavior!
-    const uid = getMasterEventId();
+    // ALL events use the SAME UID - this makes them a true series
+    const uid = masterUid;
     
     const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
     const escapedLocation = event.location.replace(/[,;\\]/g, '\\$&');
     const escapedDescription = event.description.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
     
-    // RECURRENCE-ID makes each event unique while keeping same UID
-    // This is the proper way to create a series on mobile
+    // RECURRENCE-ID marks this as an instance of the recurring series
+    // Each event has the same UID but different RECURRENCE-ID
     icsContent += `BEGIN:VEVENT
 UID:${uid}
 RECURRENCE-ID:${dtstart}

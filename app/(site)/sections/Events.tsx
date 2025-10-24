@@ -1,5 +1,6 @@
 import { ScrollAnimation, ScrollStagger, StaggerItem, HoverScale } from '../components/AnimationWrappers';
 import CalendarButton from '../components/CalendarButton';
+import DualTimezoneDisplay from '../components/DualTimezoneDisplay';
 import { formatEventDateTime, formatDateRange, groupEventsByDate } from '../lib/date-utils';
 
 type ImageWithFocus = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
@@ -129,9 +130,34 @@ export default function Events({ data }: { data: any }) {
                           </h4>
                           <div className={`flex items-center ${isWeddingCeremony ? 'justify-start' : 'justify-center'} gap-1 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2`}>
                             <span>🕐</span>
-                            <span className="leading-relaxed">
-                              {e.date && e.time ? formatEventDateTime(e.date, e.time) : e.time}
-                            </span>
+                            {e.date && e.time ? (
+                              <span className="leading-relaxed">
+                                {(() => {
+                                  const [year, month, day] = e.date.split('-').map(Number);
+                                  const date = new Date(year, month - 1, day);
+                                  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                                  const dayNum = date.getDate();
+                                  const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                                  const getOrdinal = (d: number) => {
+                                    if (d > 3 && d < 21) return 'th';
+                                    switch (d % 10) {
+                                      case 1: return 'st';
+                                      case 2: return 'nd';
+                                      case 3: return 'rd';
+                                      default: return 'th';
+                                    }
+                                  };
+                                  return (
+                                    <>
+                                      {dayName}, {dayNum}{getOrdinal(dayNum)} {monthName}{' '}
+                                      <DualTimezoneDisplay date={e.date} time={e.time} />
+                                    </>
+                                  );
+                                })()}
+                              </span>
+                            ) : (
+                              <span className="leading-relaxed">{e.time}</span>
+                            )}
                           </div>
                           {e.place && isWeddingCeremony && (
                             <div className="flex items-start justify-start gap-1 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
@@ -236,12 +262,34 @@ export default function Events({ data }: { data: any }) {
                     <div className="space-y-2 text-base sm:text-lg">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-xl sm:text-2xl">🕐</span>
-                        <span className="leading-relaxed">
-                          {receptionEvent.date && receptionEvent.time 
-                            ? formatEventDateTime(receptionEvent.date, receptionEvent.time)
-                            : receptionEvent.time
-                          }
-                        </span>
+                        {receptionEvent.date && receptionEvent.time ? (
+                          <span className="leading-relaxed">
+                            {(() => {
+                              const [year, month, day] = receptionEvent.date.split('-').map(Number);
+                              const date = new Date(year, month - 1, day);
+                              const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                              const dayNum = date.getDate();
+                              const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                              const getOrdinal = (d: number) => {
+                                if (d > 3 && d < 21) return 'th';
+                                switch (d % 10) {
+                                  case 1: return 'st';
+                                  case 2: return 'nd';
+                                  case 3: return 'rd';
+                                  default: return 'th';
+                                }
+                              };
+                              return (
+                                <>
+                                  {dayName}, {dayNum}{getOrdinal(dayNum)} {monthName}{' '}
+                                  <DualTimezoneDisplay date={receptionEvent.date} time={receptionEvent.time} />
+                                </>
+                              );
+                            })()}
+                          </span>
+                        ) : (
+                          <span className="leading-relaxed">{receptionEvent.time}</span>
+                        )}
                       </div>
                       <div className="flex items-start gap-2 sm:gap-3">
                         <span className="text-xl sm:text-2xl flex-shrink-0">📍</span>
