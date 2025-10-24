@@ -16,16 +16,20 @@ export async function GET(request: NextRequest) {
   try {
     const config = await readConfig();
     
+    // Get timezone from query params (defaults to IST)
+    const { searchParams } = new URL(request.url);
+    const timezone = searchParams.get('tz') || 'Asia/Kolkata';
+    
     // Find the events section
     const eventsSection = config.sections.find((s: any) => s.type === 'events');
     if (!eventsSection || !eventsSection.items) {
       return new NextResponse('No events found', { status: 404 });
     }
     
-    // Parse all events
+    // Parse all events with user's timezone
     const parsedEvents = eventsSection.items.map((event: CalendarEvent) => {
       const eventDate = getEventDate(event.name);
-      return parseCalendarEvent(event, eventDate);
+      return parseCalendarEvent(event, eventDate, timezone);
     });
     
     // Generate ICS content

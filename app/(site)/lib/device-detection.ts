@@ -11,12 +11,28 @@ export interface DeviceInfo {
   isIOS: boolean;
   isAndroid: boolean;
   userAgent: string;
+  timezone: string;
 }
 
 /**
  * Detect device type from user agent
  * This runs on the client side only
  */
+/**
+ * Get user's timezone using Intl API
+ */
+export function getUserTimezone(): string {
+  if (typeof window === 'undefined') {
+    return 'Asia/Kolkata'; // Default to IST for SSR
+  }
+  
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch (e) {
+    return 'Asia/Kolkata'; // Fallback to IST
+  }
+}
+
 export function detectDevice(): DeviceInfo {
   if (typeof window === 'undefined') {
     return {
@@ -25,6 +41,7 @@ export function detectDevice(): DeviceInfo {
       isIOS: false,
       isAndroid: false,
       userAgent: '',
+      timezone: 'Asia/Kolkata',
     };
   }
   
@@ -45,6 +62,7 @@ export function detectDevice(): DeviceInfo {
     isIOS,
     isAndroid,
     userAgent,
+    timezone: getUserTimezone(),
   };
 }
 
@@ -54,13 +72,15 @@ export function detectDevice(): DeviceInfo {
  * - Android: Direct .ics download (Google Calendar will handle it)
  * - Desktop: webcal:// protocol for subscription
  */
-export function getCalendarUrl(baseUrl: string, deviceType: DeviceType): string {
+export function getCalendarUrl(baseUrl: string, deviceType: DeviceType, timezone?: string): string {
+  const tzParam = timezone ? `?tz=${encodeURIComponent(timezone)}` : '';
+  
   // For mobile, always use direct download
   if (deviceType === 'ios' || deviceType === 'android') {
-    return `${baseUrl}/api/calendar`;
+    return `${baseUrl}/api/calendar${tzParam}`;
   }
   
   // For desktop, use webcal for subscription
   const webcalUrl = baseUrl.replace(/^https?:/, 'webcal:');
-  return `${webcalUrl}/api/calendar`;
+  return `${webcalUrl}/api/calendar${tzParam}`;
 }

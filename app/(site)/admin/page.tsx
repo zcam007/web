@@ -639,7 +639,7 @@ function EventRepeater({ items, onChange }: any) {
   useEffect(()=>setList(items), [items]);
   
   function add() { 
-    onChange([...(list||[]), {name:'', time:'', place:'', description:'', image:''}]); 
+    onChange([...(list||[]), {name:'', time:'', date:'', place:'', description:'', image:'', liveStreamUrl:''}]); 
   }
   
   function rm(i:number) { 
@@ -653,47 +653,125 @@ function EventRepeater({ items, onChange }: any) {
   return (
     <div className="space-y-4 mt-3">
       {(list||[]).map((it:any, i:number)=> (
-        <div key={i} className="border rounded-lg p-4 bg-gray-50">
-          <div className="flex justify-between items-center mb-3">
-            <span className="font-semibold">Event {i+1}</span>
-            <button className="btn border-red-300 bg-red-50 text-red-600" onClick={()=>rm(i)}>Delete</button>
+        <div key={i} className="border-2 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-pink-50">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">📅</span>
+              <span className="font-bold text-lg text-gray-800">Event {i+1}</span>
+              {it.name && <span className="text-sm text-gray-600">- {it.name}</span>}
+            </div>
+            <button className="btn border-red-300 bg-red-50 text-red-600 hover:bg-red-100" onClick={()=>rm(i)}>🗑️ Delete</button>
           </div>
+          
           <div className="space-y-3">
-            <input 
-              className="border rounded p-2 w-full" 
-              placeholder="Event Name" 
-              value={it.name||''} 
-              onChange={e=>upd(i, 'name', e.target.value)} 
-            />
-            <div className="grid md:grid-cols-2 gap-3">
+            {/* Event Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name *</label>
               <input 
-                className="border rounded p-2" 
-                placeholder="Time" 
-                value={it.time||''} 
-                onChange={e=>upd(i, 'time', e.target.value)} 
+                className="border-2 border-purple-200 rounded-lg p-2 w-full focus:border-purple-500 focus:outline-none" 
+                placeholder="e.g., Sangeet Night, Haldi Ceremony" 
+                value={it.name||''} 
+                onChange={e=>upd(i, 'name', e.target.value)} 
               />
+            </div>
+            
+            {/* Date and Time */}
+            <div className="grid md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input 
+                  type="date"
+                  className="border-2 border-purple-200 rounded-lg p-2 w-full focus:border-purple-500 focus:outline-none" 
+                  value={it.date||''} 
+                  onChange={e=>upd(i, 'date', e.target.value)} 
+                />
+                <p className="text-xs text-gray-500 mt-1">Used for calendar sync</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                <input 
+                  className="border-2 border-purple-200 rounded-lg p-2 w-full focus:border-purple-500 focus:outline-none" 
+                  placeholder="e.g., 6:00 PM - 8:00 PM" 
+                  value={it.time||''} 
+                  onChange={e=>upd(i, 'time', e.target.value)} 
+                />
+                <p className="text-xs text-gray-500 mt-1">Display format (IST)</p>
+              </div>
+            </div>
+            
+            {/* Place */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Venue/Place</label>
               <input 
-                className="border rounded p-2" 
-                placeholder="Place" 
+                className="border-2 border-purple-200 rounded-lg p-2 w-full focus:border-purple-500 focus:outline-none" 
+                placeholder="e.g., SRINIDHI Joy 'n' Joy Clubs & Resorts" 
                 value={it.place||''} 
                 onChange={e=>upd(i, 'place', e.target.value)} 
               />
             </div>
-            <textarea 
-              className="border rounded p-2 w-full" 
-              placeholder="Description" 
-              rows={2}
-              value={it.description||''} 
-              onChange={e=>upd(i, 'description', e.target.value)} 
-            />
+            
+            {/* Description */}
             <div>
-              <label className="block text-sm mb-1">Event Image (with Focus Point)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea 
+                className="border-2 border-purple-200 rounded-lg p-2 w-full focus:border-purple-500 focus:outline-none" 
+                placeholder="Event details, dress code, special notes..." 
+                rows={3}
+                value={it.description||''} 
+                onChange={e=>upd(i, 'description', e.target.value)} 
+              />
+            </div>
+            
+            {/* Live Stream URL */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
+              <label className="block text-sm font-medium text-blue-800 mb-1 flex items-center gap-2">
+                <span>📹</span>
+                <span>Live Stream URL (Optional)</span>
+              </label>
+              <input 
+                type="url"
+                className="border-2 border-blue-300 rounded-lg p-2 w-full focus:border-blue-500 focus:outline-none" 
+                placeholder="https://youtube.com/watch?v=... or https://youtu.be/..." 
+                value={it.liveStreamUrl||''} 
+                onChange={e=>upd(i, 'liveStreamUrl', e.target.value)} 
+              />
+              <p className="text-xs text-blue-700 mt-2">
+                💡 Add YouTube, Zoom, or any live stream link. Guests will see a "Watch Live" button.
+              </p>
+              {it.liveStreamUrl && (
+                <div className="mt-2">
+                  <a 
+                    href={it.liveStreamUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    🔗 Test link: {it.liveStreamUrl}
+                  </a>
+                </div>
+              )}
+            </div>
+            
+            {/* Event Image */}
+            <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Event Image (with Focus Point)</label>
               <ImagePickerWithFocus value={it.image} onChange={(v:ImageWithFocus)=>upd(i, 'image', v)} />
             </div>
           </div>
         </div>
       ))}
-      <button className="btn btn-primary" onClick={add}>Add Event</button>
+      
+      <button className="btn btn-primary w-full text-lg py-3" onClick={add}>
+        ➕ Add New Event
+      </button>
+      
+      {list && list.length > 0 && (
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800">
+            <strong>📝 Note:</strong> Changes are saved automatically. Calendar events will update for all users who subscribed to the calendar.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

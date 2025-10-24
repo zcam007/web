@@ -26,7 +26,7 @@ export default function AddToCalendar() {
     if (!deviceInfo) return;
     
     const baseUrl = window.location.origin;
-    const calendarUrl = getCalendarUrl(baseUrl, deviceInfo.type);
+    const calendarUrl = getCalendarUrl(baseUrl, deviceInfo.type, deviceInfo.timezone);
     
     // Mark as added so we don't ask again
     localStorage.setItem('calendar-added', 'true');
@@ -85,7 +85,12 @@ export default function AddToCalendar() {
             </div>
             
             <p className="text-xs text-gray-500 text-center mt-4">
-              💡 Events will automatically update if we make changes
+              💡 Events will be shown in your local timezone
+              {deviceInfo.timezone !== 'Asia/Kolkata' && (
+                <span className="block mt-1 font-medium">
+                  ({deviceInfo.timezone})
+                </span>
+              )}
             </p>
           </div>
         </div>

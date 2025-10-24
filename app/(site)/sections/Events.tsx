@@ -129,6 +129,19 @@ export default function Events({ data }: { data: any }) {
                               {e.description}
                             </p>
                           )}
+                          {e.liveStreamUrl && (
+                            <div className={`mt-2 ${isWeddingCeremony ? '' : 'flex justify-center'}`}>
+                              <a 
+                                href={e.liveStreamUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs sm:text-sm font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                              >
+                                <span className="text-base">📹</span>
+                                <span>Watch Live</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </HoverScale>
@@ -191,6 +204,19 @@ export default function Events({ data }: { data: any }) {
                       <p className="text-sm sm:text-lg mt-3 sm:mt-4 italic border-l-4 border-white/50 pl-3 sm:pl-4 leading-relaxed">
                         {receptionEvent.description}
                       </p>
+                    )}
+                    {receptionEvent.liveStreamUrl && (
+                      <div className="mt-4 sm:mt-6">
+                        <a 
+                          href={receptionEvent.liveStreamUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm sm:text-lg font-bold rounded-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                        >
+                          <span className="text-2xl sm:text-3xl">📹</span>
+                          <span>Watch Live Stream</span>
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -27,7 +27,7 @@ export default function CalendarButton({ variant = 'default' }: CalendarButtonPr
     setIsAdding(true);
     
     const baseUrl = window.location.origin;
-    const calendarUrl = getCalendarUrl(baseUrl, deviceInfo.type);
+    const calendarUrl = getCalendarUrl(baseUrl, deviceInfo.type, deviceInfo.timezone);
     
     // Mark as added
     localStorage.setItem('calendar-added', 'true');

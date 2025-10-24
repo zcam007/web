@@ -9,6 +9,7 @@ export interface CalendarEvent {
   place?: string;
   description?: string;
   date?: string; // e.g., "2025-11-24"
+  liveStreamUrl?: string; // YouTube, Zoom, or any live stream link
 }
 
 export interface ParsedCalendarEvent {
@@ -17,16 +18,19 @@ export interface ParsedCalendarEvent {
   end: Date;
   location: string;
   description: string;
+
 }
 
 /**
  * Parse event time string to extract start and end times
+ * Times are assumed to be in IST (Asia/Kolkata)
  * Handles formats like:
  * - "6:00 PM - 7:00 PM"
  * - "6:00 PM onwards"
  * - "6:00 PM"
  */
-function parseEventTime(timeStr: string, eventDate: string): { start: Date; end: Date } {
+function parseEventTime(timeStr: string, eventDate: string, targetTimezone: string = 'Asia/Kolkata'): { start: Date; end: Date 
+} {
   const [datePart] = eventDate.split('T');
   const [year, month, day] = datePart.split('-').map(Number);
   
@@ -34,10 +38,12 @@ function parseEventTime(timeStr: string, eventDate: string): { start: Date; end:
   const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
   if (!timeMatch) {
     // Default to noon if we can't parse
-    const defaultStart = new Date(year, month - 1, day, 12, 0);
-    const defaultEnd = new Date(year, month - 1, day, 14, 0);
-    return { start: defaultStart, end: defaultEnd };
-  }
+    const defaultStart = createDateInTimezone(year, month, day, 12, 0, targetTimezone);
+    const defaultEnd = createDateInTimezone(year, month, day, 14, 0, targetTimezone);
+    return { start: defaultStart, end: defaultEnd 
+};
+  
+}
   
   let hours = parseInt(timeMatch[1]);
   const minutes = parseInt(timeMatch[2]);
@@ -47,7 +53,7 @@ function parseEventTime(timeStr: string, eventDate: string): { start: Date; end:
   if (meridiem === 'PM' && hours !== 12) hours += 12;
   if (meridiem === 'AM' && hours === 12) hours = 0;
   
-  const startDate = new Date(year, month - 1, day, hours, minutes);
+  const startDate = createDateInTimezone(year, month, day, hours, minutes, targetTimezone);
   
   // Check if there's an end time
   const endTimeMatch = timeStr.match(/-(\d{1,2}):(\d{2})\s*(AM|PM)/i);
@@ -61,63 +67,119 @@ function parseEventTime(timeStr: string, eventDate: string): { start: Date; end:
     if (endMeridiem === 'PM' && endHours !== 12) endHours += 12;
     if (endMeridiem === 'AM' && endHours === 12) endHours = 0;
     
-    endDate = new Date(year, month - 1, day, endHours, endMinutes);
-  } else {
+    endDate = createDateInTimezone(year, month, day, endHours, endMinutes, targetTimezone);
+  
+} else {
     // Default to 2 hours duration
     endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-  }
   
-  return { start: startDate, end: endDate };
+}
+  
+  return { start: startDate, end: endDate 
+};
+
 }
 
 /**
- * Convert Date to iCalendar format (YYYYMMDDTHHMMSS)
+ * Create a Date object in a specific timezone
+ * Since the times on the website are in IST, we need to convert them properly
+ */
+function createDateInTimezone(year: number, month: number, day: number, hours: number, minutes: number, timezone: string): Date {
+  // Create a date string in ISO format for the IST timezone
+  // Times from config are in IST, so we first create them as IST
+  const istDateStr = `${year
+}-${String(month).padStart(2, '0')
+}-${String(day).padStart(2, '0')
+}T${String(hours).padStart(2, '0')
+}:${String(minutes).padStart(2, '0')
+}:00`;
+  
+  // Parse as IST (UTC+5:30)
+  // IST is UTC+5:30, so we need to subtract 5.5 hours to get UTC
+  const date = new Date(istDateStr);
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const utcTime = date.getTime() - istOffset;
+  
+  return new Date(utcTime);
+
+}
+
+/**
+ * Convert Date to iCalendar UTC format (YYYYMMDDTHHMMSSZ)
+ * The 'Z' suffix indicates UTC time
  */
 function formatICalDateTime(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
   
-  return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+  return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
 }
 
 /**
- * Generate a unique ID for the event
+ * Generate the master UID for the wedding event series
  */
-function generateEventId(event: ParsedCalendarEvent): string {
+function getMasterEventId(): string {
+  return 'chandu-mouni-wedding-2025@wedding.chandu.dev';
+
+}
+
+/**
+ * Generate UID for individual event in the series
+ * Uses RECURRENCE-ID pattern to make calendar apps treat all events as one series
+ */
+function generateEventId(event: ParsedCalendarEvent, eventIndex?: number): string {
   const timestamp = event.start.getTime();
-  const summary = event.summary.replace(/\s+/g, '-').toLowerCase();
-  return `${timestamp}-${summary}@wedding.chandu.dev`;
+  const dateStr = formatICalDateTime(event.start);
+  
+  // Use unique UID for each event, but link them with RELATED-TO
+  return `chandu-mouni-${timestamp}-${eventIndex || 0}@wedding.chandu.dev`;
 }
 
 /**
  * Parse event data into structured calendar event
+ * @param event The event data from config
+ * @param defaultDate The default date if not specified
+ * @param timezone The target timezone for the event (defaults to IST)
  */
-export function parseCalendarEvent(event: CalendarEvent, defaultDate: string): ParsedCalendarEvent {
+export function parseCalendarEvent(event: CalendarEvent, defaultDate: string, timezone: string = 'Asia/Kolkata'): ParsedCalendarEvent {
   const eventDate = event.date || defaultDate;
-  const { start, end } = parseEventTime(event.time, eventDate);
+  const { start, end } = parseEventTime(event.time, eventDate, timezone);
+  
+  // Add "Chandu & Mouni - " prefix to all event names
+  const eventName = `Chandu & Mouni - ${event.name}`;
+  
+  // Build description with live stream link if available
+  let description = event.description || '';
+  if (event.liveStreamUrl) {
+    if (description) {
+      description += '\n\n';
+    }
+    description += `📹 Watch Live: ${event.liveStreamUrl}`;
+  }
   
   return {
-    summary: event.name,
+    summary: eventName,
     start,
     end,
     location: event.place || '',
-    description: event.description || '',
+    description,
   };
 }
 
 /**
  * Generate a single .ics file content for an event
  */
-export function generateICS(event: ParsedCalendarEvent): string {
+export function generateICS(event: ParsedCalendarEvent, eventIndex?: number): string {
   const now = new Date();
   const dtstamp = formatICalDateTime(now);
   const dtstart = formatICalDateTime(event.start);
   const dtend = formatICalDateTime(event.end);
-  const uid = generateEventId(event);
+  const uid = generateEventId(event, eventIndex);
+  const masterUid = getMasterEventId();
   
   // Escape special characters in text fields
   const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
@@ -129,64 +191,91 @@ VERSION:2.0
 PRODID:-//Wedding Invitation//Calendar//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-X-WR-CALNAME:Chandu/Mouni Wedding Events
-X-WR-TIMEZONE:Asia/Kolkata
+X-WR-CALNAME:Chandu & Mouni Wedding
 BEGIN:VEVENT
-UID:${uid}
-DTSTAMP:${dtstamp}
-DTSTART:${dtstart}
-DTEND:${dtend}
-SUMMARY:${escapedSummary}
-LOCATION:${escapedLocation}
-DESCRIPTION:${escapedDescription}
+UID:${uid
+}
+DTSTAMP:${dtstamp
+}
+DTSTART:${dtstart
+}
+DTEND:${dtend
+}
+SUMMARY:${escapedSummary
+}
+LOCATION:${escapedLocation
+}
+DESCRIPTION:${escapedDescription
+}
+RELATED-TO;RELTYPE=PARENT:${masterUid
+}
+CATEGORIES:Chandu & Mouni Wedding
 STATUS:CONFIRMED
-SEQUENCE:0
+SEQUENCE:${eventIndex || 0
+}
 END:VEVENT
 END:VCALENDAR`;
+
 }
 
 /**
  * Generate a calendar feed with multiple events
+ * All events are linked as a series using RELATED-TO field
  */
 export function generateCalendarFeed(events: ParsedCalendarEvent[]): string {
   const now = new Date();
   const dtstamp = formatICalDateTime(now);
+  const masterUid = getMasterEventId();
   
   let icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Wedding Invitation//Calendar Feed//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-X-WR-CALNAME:Chandu/Mounika Wedding Events
-X-WR-TIMEZONE:Asia/Kolkata
+X-WR-CALNAME:Chandu & Mouni Wedding
 X-WR-CALDESC:Wedding ceremonies and reception events
 `;
   
-  events.forEach(event => {
+  events.forEach((event, index) => {
     const dtstart = formatICalDateTime(event.start);
     const dtend = formatICalDateTime(event.end);
-    const uid = generateEventId(event);
+    const uid = generateEventId(event, index);
     
     const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
     const escapedLocation = event.location.replace(/[,;\\]/g, '\\$&');
     const escapedDescription = event.description.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
     
+    // Add RELATED-TO field to link all events to the master series
+    // Add CATEGORIES to group them
     icsContent += `BEGIN:VEVENT
-UID:${uid}
-DTSTAMP:${dtstamp}
-DTSTART:${dtstart}
-DTEND:${dtend}
-SUMMARY:${escapedSummary}
-LOCATION:${escapedLocation}
-DESCRIPTION:${escapedDescription}
+UID:${uid
+}
+DTSTAMP:${dtstamp
+}
+DTSTART:${dtstart
+}
+DTEND:${dtend
+}
+SUMMARY:${escapedSummary
+}
+LOCATION:${escapedLocation
+}
+DESCRIPTION:${escapedDescription
+}
+RELATED-TO;RELTYPE=PARENT:${masterUid
+}
+CATEGORIES:Chandu & Mouni Wedding
 STATUS:CONFIRMED
-SEQUENCE:0
+SEQUENCE:${index
+}
 END:VEVENT
 `;
-  });
+  
+});
   
   icsContent += 'END:VCALENDAR';
   return icsContent;
+
 }
 
 /**
@@ -199,20 +288,26 @@ export function getEventDate(eventName: string): string {
   // Map event names to dates (Nov 24-26 for wedding, Nov 30 for reception)
   if (name.includes('pellikuthuru') || name.includes('mehendi')) {
     return '2025-11-24';
-  }
+  
+}
   if (name.includes('sangeet') || name.includes('music')) {
     return '2025-11-25';
-  }
+  
+}
   if (name.includes('haldi') || name.includes('turmeric')) {
     return '2025-11-25';
-  }
+  
+}
   if (name.includes('muhurtham') || name.includes('wedding')) {
     return '2025-11-26';
-  }
+  
+}
   if (name.includes('reception')) {
     return '2025-11-30';
-  }
+  
+}
   
   // Default to first day
   return '2025-11-24';
+
 }
