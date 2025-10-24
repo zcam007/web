@@ -204,7 +204,7 @@ export function generateICS(event: ParsedCalendarEvent, eventIndex: number = 0):
   const dtstamp = formatICalDateTime(now);
   const dtstart = formatICalDateTime(event.start);
   const dtend = formatICalDateTime(event.end);
-  const uid = getMasterEventId(); // Same UID for series
+  const uid = generateEventId(eventIndex, event.start); // Unique UID
   
   // Escape special characters in text fields
   const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
@@ -219,7 +219,6 @@ METHOD:PUBLISH
 X-WR-CALNAME:Chandu & Mouni Wedding
 BEGIN:VEVENT
 UID:${uid}
-RECURRENCE-ID:${dtstart}
 DTSTAMP:${dtstamp}
 DTSTART:${dtstart}
 DTEND:${dtend}
@@ -260,18 +259,18 @@ X-PUBLISHED-TTL:PT1H
     const dtstart = formatICalDateTime(event.start);
     const dtend = formatICalDateTime(event.end);
     
-    // ALL events use the SAME UID - this makes them a true series
-    const uid = masterUid;
+    // Each event gets a unique UID for iPhone compatibility
+    // iPhone doesn't handle RECURRENCE-ID without RRULE properly
+    const uid = generateEventId(index, event.start);
     
     const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
     const escapedLocation = event.location.replace(/[,;\\]/g, '\\$&');
     const escapedDescription = event.description.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
     
-    // RECURRENCE-ID marks this as an instance of the recurring series
-    // Each event has the same UID but different RECURRENCE-ID
+    // No RECURRENCE-ID - each event is independent
+    // Grouped by CATEGORIES for organization
     icsContent += `BEGIN:VEVENT
 UID:${uid}
-RECURRENCE-ID:${dtstart}
 DTSTAMP:${dtstamp}
 DTSTART:${dtstart}
 DTEND:${dtend}
