@@ -1,4 +1,5 @@
 import { ScrollAnimation, ScrollStagger, StaggerItem, HoverScale } from '../components/AnimationWrappers';
+import CalendarButton from '../components/CalendarButton';
 
 type ImageWithFocus = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
 
@@ -35,6 +36,9 @@ export default function Events({ data }: { data: any }) {
         <div className="inline-block">
           <div className="text-4xl sm:text-5xl mb-2">🎪</div>
           <h2 className="section-title">{data.heading}</h2>
+        </div>
+        <div className="mt-6 flex justify-center">
+          <CalendarButton variant="compact" />
         </div>
       </ScrollAnimation>
 
@@ -82,9 +86,6 @@ export default function Events({ data }: { data: any }) {
                                 className="w-full h-full object-cover" 
                                 style={{ 
                                   objectPosition: `${img.focusX}% ${img.focusY}%`,
-                                  transform: `scale(${img.zoom})`
-                                }}
-                              />
                                   transform: `scale(${img.zoom})`
                                 }}
                               />

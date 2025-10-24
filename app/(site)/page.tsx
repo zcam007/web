@@ -9,13 +9,15 @@ import Map from './sections/Map';
 import Invitation from './sections/Invitation';
 import InvitationHero from './sections/InvitationHero';
 import WeddingLive from './sections/WeddingLive';
+import AddToCalendar from './components/AddToCalendar';
 import Script from 'next/script'
 
 export default async function Page() {
   const cfg = await readConfig();
   return (
     <main>
-            <Script src="https://metrics.chandu.dev/script.js" data-website-id="9f5dcb8e-3ba6-4a8d-a9bb-e160448f64a3" />
+      <Script src="https://metrics.chandu.dev/script.js" data-website-id="9f5dcb8e-3ba6-4a8d-a9bb-e160448f64a3" />
+      <AddToCalendar />
 
       <Hero data={cfg.hero} />
       {cfg.sections.map((sec: any, i: number) => {
