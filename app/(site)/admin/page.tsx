@@ -678,26 +678,124 @@ function EventRepeater({ items, onChange }: any) {
             {/* Date and Time */}
             <div className="grid md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                 <input 
                   type="date"
                   className="border-2 border-purple-200 rounded-lg p-2 w-full focus:border-purple-500 focus:outline-none" 
                   value={it.date||''} 
                   onChange={e=>upd(i, 'date', e.target.value)} 
+                  required
                 />
-                <p className="text-xs text-gray-500 mt-1">Used for calendar sync</p>
+                {it.date && (() => {
+                  try {
+                    // Parse date in local timezone to avoid off-by-one errors
+                    const [year, month, day] = it.date.split('-').map(Number);
+                    if (!year || !month || !day) {
+                      return <p className="text-xs text-red-500 mt-1">❌ Invalid date</p>;
+                    }
+                    const date = new Date(year, month - 1, day);
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                    const dayNum = date.getDate();
+                    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                    const getOrdinal = (d: number) => {
+                      if (d > 3 && d < 21) return 'th';
+                      switch (d % 10) {
+                        case 1: return 'st';
+                        case 2: return 'nd';
+                        case 3: return 'rd';
+                        default: return 'th';
+                      }
+                    };
+                    return (
+                      <p className="text-xs text-purple-600 mt-1 font-medium">
+                        ✅ {dayName}, {dayNum}{getOrdinal(dayNum)} {monthName}
+                      </p>
+                    );
+                  } catch (e) {
+                    return <p className="text-xs text-red-500 mt-1">❌ Invalid date</p>;
+                  }
+                })()}
+                {!it.date && (
+                  <p className="text-xs text-gray-500 mt-1">Required for calendar sync</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
                 <input 
+                  type="time"
                   className="border-2 border-purple-200 rounded-lg p-2 w-full focus:border-purple-500 focus:outline-none" 
-                  placeholder="e.g., 6:00 PM - 8:00 PM" 
                   value={it.time||''} 
                   onChange={e=>upd(i, 'time', e.target.value)} 
+                  required
                 />
-                <p className="text-xs text-gray-500 mt-1">Display format (IST)</p>
+                {it.time && (() => {
+                  const format24To12 = (time24: string) => {
+                    const [hoursStr, minutes] = time24.split(':');
+                    const hours24 = parseInt(hoursStr, 10);
+                    const period = hours24 >= 12 ? 'PM' : 'AM';
+                    let hours12 = hours24 % 12;
+                    if (hours12 === 0) hours12 = 12;
+                    return `${hours12}:${minutes} ${period}`;
+                  };
+                  return (
+                    <p className="text-xs text-purple-600 mt-1 font-medium">
+                      ✅ {format24To12(it.time)}
+                    </p>
+                  );
+                })()}
+                {!it.time && (
+                  <p className="text-xs text-gray-500 mt-1">Select event start time</p>
+                )}
               </div>
             </div>
+            
+            {/* Preview of how it will appear */}
+            {it.date && it.time && (() => {
+              try {
+                // Parse date in local timezone to avoid off-by-one errors
+                const [year, month, day] = it.date.split('-').map(Number);
+                if (!year || !month || !day) return null;
+                
+                const date = new Date(year, month - 1, day);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                const dayNum = date.getDate();
+                const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+                const getOrdinal = (d: number) => {
+                  if (d > 3 && d < 21) return 'th';
+                  switch (d % 10) {
+                    case 1: return 'st';
+                    case 2: return 'nd';
+                    case 3: return 'rd';
+                    default: return 'th';
+                  }
+                };
+                // Convert 24-hour time to 12-hour format
+                const format24To12 = (time24: string) => {
+                  const [hoursStr, minutes] = time24.split(':');
+                  const hours24 = parseInt(hoursStr, 10);
+                  const period = hours24 >= 12 ? 'PM' : 'AM';
+                  let hours12 = hours24 % 12;
+                  if (hours12 === 0) hours12 = 12;
+                  return `${hours12}:${minutes} ${period}`;
+                };
+                const formattedTime = format24To12(it.time);
+                return (
+                  <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 mt-3">
+                    <p className="text-xs font-medium text-green-800 mb-1">
+                      👀 Preview on Website (IST):
+                    </p>
+                    <p className="text-sm font-bold text-green-900">
+                      {dayName}, {dayNum}{getOrdinal(dayNum)} {monthName} {formattedTime}
+                    </p>
+                    <p className="text-xs text-green-700 mt-1">
+                      Note: Calendar apps will show in user's local timezone
+                    </p>
+                  </div>
+                );
+              } catch (e) {
+                return null;
+              }
+            })()}
             
             {/* Place */}
             <div>

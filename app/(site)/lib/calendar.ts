@@ -23,13 +23,16 @@ export interface ParsedCalendarEvent {
 
 /**
  * Parse event time string to extract start and end times
- * Times are assumed to be in IST (Asia/Kolkata)
+ * IMPORTANT: Times from the website are in IST (Asia/Kolkata)
+ * This function converts IST times to UTC for calendar storage
+ * Calendar apps will then convert UTC to user's local timezone
+ * 
  * Handles formats like:
- * - "6:00 PM - 7:00 PM"
- * - "6:00 PM onwards"
- * - "6:00 PM"
+ * - "18:00" (24-hour from time picker)
+ * - "6:00 PM" (12-hour legacy)
+ * - "6:00 PM - 8:00 PM" (with end time)
  */
-function parseEventTime(timeStr: string, eventDate: string, targetTimezone: string = 'Asia/Kolkata'): { start: Date; end: Date 
+function parseEventTime(timeStr: string, eventDate: string, targetTimezone: string = 'Asia/Kolkata'): { start: Date; end: Date } {
 } {
   const [datePart] = eventDate.split('T');
   const [year, month, day] = datePart.split('-').map(Number);
@@ -121,22 +124,10 @@ function formatICalDateTime(date: Date): string {
 
 /**
  * Generate the master UID for the wedding event series
+ * ALL events use this same UID to be treated as one series
  */
 function getMasterEventId(): string {
   return 'chandu-mouni-wedding-2025@wedding.chandu.dev';
-
-}
-
-/**
- * Generate UID for individual event in the series
- * Uses RECURRENCE-ID pattern to make calendar apps treat all events as one series
- */
-function generateEventId(event: ParsedCalendarEvent, eventIndex?: number): string {
-  const timestamp = event.start.getTime();
-  const dateStr = formatICalDateTime(event.start);
-  
-  // Use unique UID for each event, but link them with RELATED-TO
-  return `chandu-mouni-${timestamp}-${eventIndex || 0}@wedding.chandu.dev`;
 }
 
 /**
@@ -173,13 +164,12 @@ export function parseCalendarEvent(event: CalendarEvent, defaultDate: string, ti
 /**
  * Generate a single .ics file content for an event
  */
-export function generateICS(event: ParsedCalendarEvent, eventIndex?: number): string {
+export function generateICS(event: ParsedCalendarEvent): string {
   const now = new Date();
   const dtstamp = formatICalDateTime(now);
   const dtstart = formatICalDateTime(event.start);
   const dtend = formatICalDateTime(event.end);
-  const uid = generateEventId(event, eventIndex);
-  const masterUid = getMasterEventId();
+  const uid = getMasterEventId();
   
   // Escape special characters in text fields
   const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
@@ -193,29 +183,19 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 X-WR-CALNAME:Chandu & Mouni Wedding
 BEGIN:VEVENT
-UID:${uid
-}
-DTSTAMP:${dtstamp
-}
-DTSTART:${dtstart
-}
-DTEND:${dtend
-}
-SUMMARY:${escapedSummary
-}
-LOCATION:${escapedLocation
-}
-DESCRIPTION:${escapedDescription
-}
-RELATED-TO;RELTYPE=PARENT:${masterUid
-}
+UID:${uid}
+RECURRENCE-ID:${dtstart}
+DTSTAMP:${dtstamp}
+DTSTART:${dtstart}
+DTEND:${dtend}
+SUMMARY:${escapedSummary}
+LOCATION:${escapedLocation}
+DESCRIPTION:${escapedDescription}
 CATEGORIES:Chandu & Mouni Wedding
 STATUS:CONFIRMED
-SEQUENCE:${eventIndex || 0
-}
+SEQUENCE:0
 END:VEVENT
 END:VCALENDAR`;
-
 }
 
 /**
@@ -227,55 +207,52 @@ export function generateCalendarFeed(events: ParsedCalendarEvent[]): string {
   const dtstamp = formatICalDateTime(now);
   const masterUid = getMasterEventId();
   
+  // Use current timestamp as part of the sequence to force updates
+  // This ensures calendar apps recognize changes when events are modified
+  const baseSequence = Math.floor(now.getTime() / 1000);
+  
   let icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Wedding Invitation//Calendar Feed//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 X-WR-CALNAME:Chandu & Mouni Wedding
-X-WR-CALDESC:Wedding ceremonies and reception events
+X-WR-CALDESC:Wedding ceremonies and reception events. Delete any event to remove all.
+X-PUBLISHED-TTL:PT1H
 `;
   
-  events.forEach((event, index) => {
+  events.forEach((event) => {
     const dtstart = formatICalDateTime(event.start);
     const dtend = formatICalDateTime(event.end);
-    const uid = generateEventId(event, index);
+    
+    // All events use the SAME UID - this is the key for series behavior!
+    const uid = getMasterEventId();
     
     const escapedSummary = event.summary.replace(/[,;\\]/g, '\\$&');
     const escapedLocation = event.location.replace(/[,;\\]/g, '\\$&');
     const escapedDescription = event.description.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
     
-    // Add RELATED-TO field to link all events to the master series
-    // Add CATEGORIES to group them
+    // RECURRENCE-ID makes each event unique while keeping same UID
+    // This is the proper way to create a series on mobile
     icsContent += `BEGIN:VEVENT
-UID:${uid
-}
-DTSTAMP:${dtstamp
-}
-DTSTART:${dtstart
-}
-DTEND:${dtend
-}
-SUMMARY:${escapedSummary
-}
-LOCATION:${escapedLocation
-}
-DESCRIPTION:${escapedDescription
-}
-RELATED-TO;RELTYPE=PARENT:${masterUid
-}
+UID:${uid}
+RECURRENCE-ID:${dtstart}
+DTSTAMP:${dtstamp}
+DTSTART:${dtstart}
+DTEND:${dtend}
+SUMMARY:${escapedSummary}
+LOCATION:${escapedLocation}
+DESCRIPTION:${escapedDescription}
 CATEGORIES:Chandu & Mouni Wedding
 STATUS:CONFIRMED
-SEQUENCE:${index
-}
+SEQUENCE:${baseSequence}
+LAST-MODIFIED:${dtstamp}
 END:VEVENT
 `;
-  
-});
+  });
   
   icsContent += 'END:VCALENDAR';
   return icsContent;
-
 }
 
 /**
@@ -288,26 +265,20 @@ export function getEventDate(eventName: string): string {
   // Map event names to dates (Nov 24-26 for wedding, Nov 30 for reception)
   if (name.includes('pellikuthuru') || name.includes('mehendi')) {
     return '2025-11-24';
-  
-}
+  }
   if (name.includes('sangeet') || name.includes('music')) {
     return '2025-11-25';
-  
-}
+  }
   if (name.includes('haldi') || name.includes('turmeric')) {
     return '2025-11-25';
-  
-}
+  }
   if (name.includes('muhurtham') || name.includes('wedding')) {
     return '2025-11-26';
-  
-}
+  }
   if (name.includes('reception')) {
     return '2025-11-30';
-  
-}
+  }
   
   // Default to first day
   return '2025-11-24';
-
 }

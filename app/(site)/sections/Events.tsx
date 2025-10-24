@@ -1,5 +1,6 @@
 import { ScrollAnimation, ScrollStagger, StaggerItem, HoverScale } from '../components/AnimationWrappers';
 import CalendarButton from '../components/CalendarButton';
+import { formatEventDateTime, formatDateRange, groupEventsByDate } from '../lib/date-utils';
 
 type ImageWithFocus = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
 
@@ -17,7 +18,7 @@ function normalizeImage(item: ImageWithFocus): { url: string; focusX: number; fo
 }
 
 export default function Events({ data }: { data: any }) {
-  // Separate wedding events (Nov 24-26) from reception
+  // Separate wedding events from reception
   const weddingEvents = data.items?.filter((e: any) => 
     e.name !== 'Reception' && e.name !== 'reception'
   ) || [];
@@ -25,6 +26,16 @@ export default function Events({ data }: { data: any }) {
   const receptionEvent = data.items?.find((e: any) => 
     e.name === 'Reception' || e.name === 'reception'
   );
+  
+  // Calculate date range for wedding events
+  const weddingDates = weddingEvents
+    .filter((e: any) => e.date)
+    .map((e: any) => e.date);
+  const weddingDateRange = weddingDates.length > 0 ? formatDateRange(weddingDates) : '';
+  
+  // Get first wedding event's date for display
+  const firstWeddingEvent = weddingEvents.find((e: any) => e.date);
+  const weddingVenue = firstWeddingEvent?.place || '';
 
   return (
     <section className="container py-12 sm:py-16 relative" id="events">
@@ -47,8 +58,12 @@ export default function Events({ data }: { data: any }) {
         <ScrollStagger staggerDelay={0.1} className="space-y-1 lg:col-span-1">
           <div className="text-center mb-6 sm:mb-8">
             <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-800 mb-2">Wedding Ceremonies</h3>
-            <p className="text-base sm:text-lg text-gray-600">24th - 26th November, 2025</p>
-            <p className="text-sm sm:text-md text-gray-500 mt-1 px-4">SRINIDHI Joy 'n' Joy Clubs & Resorts, Ghatkesar</p>
+            {weddingDateRange && (
+              <p className="text-base sm:text-lg text-gray-600">{weddingDateRange}</p>
+            )}
+            {weddingVenue && (
+              <p className="text-sm sm:text-md text-gray-500 mt-1 px-4">{weddingVenue}</p>
+            )}
           </div>
 
           {/* Timeline - 2 columns on mobile */}
@@ -114,7 +129,9 @@ export default function Events({ data }: { data: any }) {
                           </h4>
                           <div className={`flex items-center ${isWeddingCeremony ? 'justify-start' : 'justify-center'} gap-1 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2`}>
                             <span>🕐</span>
-                            <span className="leading-relaxed">{e.time}</span>
+                            <span className="leading-relaxed">
+                              {e.date && e.time ? formatEventDateTime(e.date, e.time) : e.time}
+                            </span>
                           </div>
                           {e.place && isWeddingCeremony && (
                             <div className="flex items-start justify-start gap-1 text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
@@ -158,7 +175,33 @@ export default function Events({ data }: { data: any }) {
             <div className="lg:sticky lg:top-24">
               <div className="text-center mb-6 sm:mb-8">
                 <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-800 mb-2">Reception</h3>
-                <p className="text-base sm:text-lg text-gray-600">30th November, 2025</p>
+                {receptionEvent.date && (
+                  <p className="text-base sm:text-lg text-gray-600">
+                    {(() => {
+                      try {
+                        // Parse date in local timezone to avoid off-by-one errors
+                        const [year, month, day] = receptionEvent.date.split('-').map(Number);
+                        if (!year || !month || !day) return receptionEvent.date;
+                        
+                        const date = new Date(year, month - 1, day);
+                        const dayNum = date.getDate();
+                        const monthName = date.toLocaleDateString('en-US', { month: 'long' });
+                        const getOrdinal = (d: number) => {
+                          if (d > 3 && d < 21) return 'th';
+                          switch (d % 10) {
+                            case 1: return 'st';
+                            case 2: return 'nd';
+                            case 3: return 'rd';
+                            default: return 'th';
+                          }
+                        };
+                        return `${dayNum}${getOrdinal(dayNum)} ${monthName}, ${year}`;
+                      } catch (e) {
+                        return receptionEvent.date;
+                      }
+                    })()}
+                  </p>
+                )}
               </div>
 
               <HoverScale scale={1.02}>
@@ -193,7 +236,12 @@ export default function Events({ data }: { data: any }) {
                     <div className="space-y-2 text-base sm:text-lg">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-xl sm:text-2xl">🕐</span>
-                        <span className="leading-relaxed">{receptionEvent.time}</span>
+                        <span className="leading-relaxed">
+                          {receptionEvent.date && receptionEvent.time 
+                            ? formatEventDateTime(receptionEvent.date, receptionEvent.time)
+                            : receptionEvent.time
+                          }
+                        </span>
                       </div>
                       <div className="flex items-start gap-2 sm:gap-3">
                         <span className="text-xl sm:text-2xl flex-shrink-0">📍</span>
