@@ -30,8 +30,8 @@ export async function DELETE(
         if (typeof obj[key] === 'string' && obj[key] === imageUrl) {
           obj[key] = ''; // Or delete obj[key];
         } else if (Array.isArray(obj[key])) {
-          obj[key] = obj[key].filter(item => item !== imageUrl);
-          obj[key].forEach(item => removeImage(item));
+          obj[key] = obj[key].filter((item: any) => item !== imageUrl);
+          obj[key].forEach((item: any) => removeImage(item));
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
           removeImage(obj[key]);
         }

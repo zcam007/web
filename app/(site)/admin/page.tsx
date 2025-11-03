@@ -34,9 +34,11 @@ type HeroImage = {
 
 type GalleryMode = 'local' | 'immich' | 'hybrid';
 
+type GalleryImage = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
+
 type GallerySection = {
   heading: string;
-  images: string[];
+  images: GalleryImage[];
   mode: GalleryMode;
   immich: {
     albums: string[];
@@ -1032,8 +1034,6 @@ function ImagePickerWithFocus({ value, onChange }: { value: ImageWithFocus, onCh
   );
 }
 
-type GalleryImage = string | { url: string; focusX?: number; focusY?: number; zoom?: number };
-
 function normalizeGalleryImage(item: GalleryImage): { url: string; focusX: number; focusY: number; zoom: number } {
   if (typeof item === 'string') {
     return { url: item, focusX: 50, focusY: 50, zoom: 1 };
@@ -1872,7 +1872,7 @@ function HeroImageList({ list, onChange }: { list: HeroImage[]; onChange: (list:
               id={i.toString()}
               img={img}
               index={i}
-              onUpdate={(patch) => updateImage(i, patch)}
+              onUpdate={(patch: Partial<HeroImage>) => updateImage(i, patch)}
               onRemove={() => remove(i)}
               getTextPositionLabel={getTextPositionLabel}
               getTextPositionColor={getTextPositionColor}
