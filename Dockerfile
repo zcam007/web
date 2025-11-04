@@ -3,6 +3,7 @@
 # Stage 1: Install dependencies
 # Use a specific version of Alpine for reproducibility
 FROM node:20-alpine AS deps
+ENV NODE_ENV=production
 WORKDIR /app
 COPY package.json package-lock.json ./
 # Use 'npm ci' for clean, consistent installs
